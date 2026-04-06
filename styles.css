@@ -1,48 +1,17 @@
 body {
   margin: 0;
-  background: #0d0d0d;
+  background: #0b0f1a;
   color: white;
-  font-family: monospace;
+  font-family: system-ui;
 }
 
+/* Topbar */
 .topbar {
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background: #111;
-}
-
-.container {
-  height: calc(100vh - 50px);
-}
-
-/* Editor */
-#editor {
-  width: 100%;
-  height: 100%;
-  background: #111;
-  color: #0f0;
-  border: none;
-  padding: 10px;
-  display: none;
-}
-
-/* Preview */
-#preview {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: white;
-  display: none;
-}
-
-/* Active mode */
-.show-editor #editor {
-  display: block;
-}
-
-.show-preview #preview {
-  display: block;
+  background: rgba(20,20,30,0.9);
+  backdrop-filter: blur(10px);
 }
 
 /* Tabs */
@@ -52,12 +21,63 @@ body {
 }
 
 .tab {
-  padding: 5px 10px;
-  background: #333;
+  padding: 6px 12px;
+  background: #1e293b;
+  border-radius: 8px;
   cursor: pointer;
 }
 
 .tab.active {
-  background: cyan;
+  background: #38bdf8;
   color: black;
+}
+
+/* Stage */
+.stage {
+  height: calc(100vh - 50px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Preview iframe */
+#preview {
+  width: 90vw;
+  height: calc(90vw * 9 / 16);
+  max-height: 90vh;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+}
+
+/* Editor Panel */
+#editorPanel {
+  position: fixed;
+  right: -50%;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: #020617;
+  transition: 0.3s;
+}
+
+#editorPanel.open {
+  right: 0;
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #0f0;
+  border: none;
+  padding: 12px;
+}
+
+/* Hidden render root */
+#renderRoot {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
 }
