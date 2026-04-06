@@ -1,102 +1,63 @@
-* {
-  box-sizing: border-box;
+body {
   margin: 0;
-  padding: 0;
+  background: #0d0d0d;
+  color: white;
   font-family: monospace;
 }
 
-body {
-  background: #0d0d0d;
-  color: white;
-  height: 100vh;
-  display: flex;
-}
-
-/* App Layout */
-.app {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-/* Topbar */
 .topbar {
   display: flex;
   justify-content: space-between;
-  background: #111;
   padding: 10px;
-  border-bottom: 1px solid #333;
+  background: #111;
 }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-}
-
-.tab {
-  padding: 6px 12px;
-  background: #222;
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.tab.active {
-  background: #00bcd4;
-  color: black;
-}
-
-/* Buttons */
-.actions button {
-  margin-left: 6px;
-  padding: 6px 10px;
-  background: #333;
-  border: none;
-  color: white;
-  border-radius: 6px;
-}
-
-/* Main Layout */
-.main {
-  flex: 1;
-  display: flex;
+.container {
   height: calc(100vh - 50px);
 }
 
 /* Editor */
 #editor {
-  width: 50%;
+  width: 100%;
   height: 100%;
-  background: #1a1a1a;
+  background: #111;
   color: #0f0;
   border: none;
   padding: 10px;
-  font-size: 14px;
-  resize: none;
+  display: none;
 }
 
 /* Preview */
 #preview {
-  width: 50%;
+  width: 100%;
   height: 100%;
   border: none;
   background: white;
+  display: none;
 }
 
-/* Mobile / iPad Fix */
-@media (max-width: 900px) {
-  .main {
-    flex-direction: column;
-  }
+/* Active mode */
+.show-editor #editor {
+  display: block;
+}
 
-  #editor, #preview {
-    width: 100%;
-    height: 50%;
-  }
+.show-preview #preview {
+  display: block;
+}
 
-  .hide {
-    display: none;
-  }
+/* Tabs */
+#tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab {
+  padding: 5px 10px;
+  background: #333;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: cyan;
+  color: black;
 }
