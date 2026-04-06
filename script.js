@@ -1,3 +1,6 @@
+/* =========================
+   STATE
+========================= */
 let slides = [
 `<div style="width:1280px;height:720px;background:#0f172a;color:white;display:flex;align-items:center;justify-content:center;">
 <h1>Slide 1</h1>
@@ -6,37 +9,49 @@ let slides = [
 
 let current = 0;
 
+/* =========================
+   ELEMENTS
+========================= */
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const tabs = document.getElementById("tabs");
 const panel = document.getElementById("editorPanel");
+const renderRoot = document.getElementById("renderRoot");
 
-/* INIT */
+/* =========================
+   INIT
+========================= */
 function init(){
   renderTabs();
   loadSlide();
 }
 
-/* PREVIEW */
+/* =========================
+   PREVIEW ENGINE
+========================= */
 function renderPreview(){
+  // ใช้ iframe render จริง
   preview.srcdoc = slides[current];
 }
 
-/* LOAD */
+/* =========================
+   LOAD / EDIT
+========================= */
 function loadSlide(){
   editor.value = slides[current];
   renderPreview();
 }
 
-/* EDIT */
 editor.addEventListener("input", ()=>{
   slides[current] = editor.value;
   renderPreview();
 });
 
-/* SLIDES */
+/* =========================
+   SLIDE MANAGEMENT
+========================= */
 function addSlide(){
-  slides.push(`<div style="width:1280px;height:720px;background:black;color:white;">New</div>`);
+  slides.push(`<div style="width:1280px;height:720px;background:#020617;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
   current = slides.length - 1;
   renderTabs();
   loadSlide();
@@ -50,21 +65,28 @@ function switchSlide(i){
 
 function renderTabs(){
   tabs.innerHTML = "";
+
   slides.forEach((_,i)=>{
     let t = document.createElement("div");
-    t.className = "tab " + (i===current?"active":"");
+    t.className = "tab " + (i===current ? "active" : "");
     t.innerText = "Slide " + (i+1);
+
     t.onclick = ()=>switchSlide(i);
+
     tabs.appendChild(t);
   });
 }
 
-/* EDITOR PANEL */
+/* =========================
+   EDITOR PANEL CONTROL
+========================= */
 function toggleEditor(){
   panel.classList.toggle("open");
 }
 
-/* 🔥 EXPORT PDF (แก้จริง) */
+/* =========================
+   PDF EXPORT ENGINE (FIX จริง)
+========================= */
 async function exportPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -75,23 +97,28 @@ async function exportPDF(){
     format: [1280,720]
   });
 
-  const root = document.getElementById("renderRoot");
-
   for(let i=0;i<slides.length;i++){
 
-    root.innerHTML = slides[i];
+    // inject HTML ลง DOM จริง (ไม่ใช้ iframe แล้ว)
+    renderRoot.innerHTML = slides[i];
 
-    // force size
-    root.firstElementChild.style.width = "1280px";
-    root.firstElementChild.style.height = "720px";
+    let el = renderRoot.firstElementChild;
 
-    await new Promise(r=>setTimeout(r,200));
+    // 🔥 บังคับขนาดแน่นอน
+    el.style.width = "1280px";
+    el.style.height = "720px";
+    el.style.margin = "0";
+    el.style.padding = "0";
 
-    const canvas = await html2canvas(root.firstElementChild,{
+    // 🔥 รอ render เสถียร (สำคัญมาก)
+    await waitForRender(el);
+
+    const canvas = await html2canvas(el,{
       width:1280,
       height:720,
       scale:2,
-      useCORS:true
+      useCORS:true,
+      backgroundColor:null
     });
 
     const img = canvas.toDataURL("image/png");
@@ -104,4 +131,35 @@ async function exportPDF(){
   pdf.save("slides.pdf");
 }
 
+/* =========================
+   WAIT RENDER (สำคัญมาก)
+========================= */
+function waitForRender(el){
+  return new Promise(resolve=>{
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        resolve();
+      });
+    });
+  });
+}
+
+/* =========================
+   OPTIONAL: AUTO SAVE
+========================= */
+function save(){
+  localStorage.setItem("slides", JSON.stringify(slides));
+}
+
+function load(){
+  const data = localStorage.getItem("slides");
+  if(data) slides = JSON.parse(data);
+}
+
+setInterval(save, 2000);
+
+/* =========================
+   START
+========================= */
+load();
 init();
