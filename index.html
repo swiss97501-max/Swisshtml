@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Swiss Slide PDF Engine</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind CDN (temporary for layout only, will move to CSS later) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-[#020617] text-white font-sans overflow-hidden">
+
+  <div class="flex h-screen w-full">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#0f172a] border-r border-white/5 flex flex-col">
+
+      <div class="p-6 border-b border-white/5 flex justify-between items-center">
+        <h1 class="text-lg font-bold tracking-tight">SWISS PDF</h1>
+        <button id="addPageBtn" class="text-gray-400 hover:text-white text-xl">＋</button>
+      </div>
+
+      <div id="pageTabs" class="flex-1 overflow-y-auto p-3 space-y-2">
+        <!-- Tabs injected -->
+      </div>
+
+      <div class="p-4 border-t border-white/5">
+        <button id="exportBtn" class="w-full bg-white text-black py-2 rounded-lg font-medium hover:bg-gray-200">
+          Export PDF
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col">
+
+      <!-- Header -->
+      <div class="h-14 border-b border-white/5 flex items-center px-6 text-sm text-gray-400 uppercase tracking-wider">
+        HTML Slide Editor
+      </div>
+
+      <!-- Content -->
+      <div class="flex flex-1 overflow-hidden">
+
+        <!-- Editor --> 
