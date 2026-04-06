@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HTML Slide Engine</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css">
 
-  <!-- PDF Export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<title>Slide Engine</title>
 </head>
+
 <body>
 
-<div class="app">
+<div class="topbar">
+  <div id="tabs"></div>
 
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="tabs" id="tabs"></div>
-
-    <div class="actions">
-      <button onclick="addSlide()">＋</button>
-      <button onclick="exportPDF()">Export PDF</button>
-      <button onclick="toggleView()">Toggle</button>
-    </div>
+  <div>
+    <button onclick="addSlide()">＋</button>
+    <button onclick="toggleMode()">Mode</button>
+    <button onclick="exportPDF()">PDF</button>
   </div>
+</div>
 
-  <!-- Main -->
-  <div class="main">
+<div class="container">
 
-    <!-- Editor -->
-    <textarea id="editor"></textarea>
+  <textarea id="editor"></textarea>
 
-    <!-- Preview -->
-    <iframe id="preview"></iframe>
-
-  </div>
+  <iframe id="preview"></iframe>
 
 </div>
 
