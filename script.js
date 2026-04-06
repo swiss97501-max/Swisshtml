@@ -1,13 +1,20 @@
-/* STATE */
 let slides = [
-`<div class="w-[1280px] h-[720px] bg-[#0f172a] text-white flex items-center justify-center">
-<h1 class="text-5xl font-bold">Slide 1</h1>
+`<div style="
+width:1280px;
+height:720px;
+background:#0f172a;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+">
+Slide 1
 </div>`
 ];
 
 let current = 0;
 
-/* ELEMENTS */
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const tabs = document.getElementById("tabs");
@@ -22,15 +29,7 @@ function init(){
 
 /* PREVIEW */
 function renderPreview(){
-  preview.srcdoc = `
-  <html>
-  <head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun&family=Playfair+Display&display=swap" rel="stylesheet">
-  </head>
-  <body>${slides[current]}</body>
-  </html>
-  `;
+  preview.srcdoc = slides[current];
 }
 
 /* LOAD */
@@ -47,7 +46,7 @@ editor.addEventListener("input", ()=>{
 
 /* SLIDES */
 function addSlide(){
-  slides.push(`<div class="w-[1280px] h-[720px] bg-black text-white flex items-center justify-center">New Slide</div>`);
+  slides.push(`<div style="width:1280px;height:720px;background:black;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
   current = slides.length - 1;
   renderTabs();
   loadSlide();
@@ -70,12 +69,12 @@ function renderTabs(){
   });
 }
 
-/* EDITOR */
+/* editor toggle */
 function toggleEditor(){
   panel.classList.toggle("open");
 }
 
-/* WAIT RENDER */
+/* wait render */
 function wait(){
   return new Promise(r=>{
     requestAnimationFrame(()=>{
@@ -84,7 +83,7 @@ function wait(){
   });
 }
 
-/* 🔥 EXPORT PDF (fixed จริง) */
+/* EXPORT PDF (no bug) */
 async function exportPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -105,13 +104,11 @@ async function exportPDF(){
     el.style.height = "720px";
 
     await wait();
-    await document.fonts.ready;
 
     const canvas = await html2canvas(el,{
       width:1280,
       height:720,
-      scale:2,
-      useCORS:true
+      scale:2
     });
 
     const img = canvas.toDataURL("image/png");
@@ -124,5 +121,4 @@ async function exportPDF(){
   pdf.save("slides.pdf");
 }
 
-/* START */
 init();
