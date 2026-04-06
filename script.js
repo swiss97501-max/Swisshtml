@@ -27,10 +27,9 @@ function init(){
 }
 
 /* =========================
-   PREVIEW ENGINE
+   PREVIEW (REAL RENDER)
 ========================= */
 function renderPreview(){
-  // ใช้ iframe render จริง
   preview.srcdoc = slides[current];
 }
 
@@ -48,10 +47,10 @@ editor.addEventListener("input", ()=>{
 });
 
 /* =========================
-   SLIDE MANAGEMENT
+   SLIDES
 ========================= */
 function addSlide(){
-  slides.push(`<div style="width:1280px;height:720px;background:#020617;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
+  slides.push(`<div style="width:1280px;height:720px;background:black;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
   current = slides.length - 1;
   renderTabs();
   loadSlide();
@@ -65,27 +64,85 @@ function switchSlide(i){
 
 function renderTabs(){
   tabs.innerHTML = "";
-
   slides.forEach((_,i)=>{
     let t = document.createElement("div");
-    t.className = "tab " + (i===current ? "active" : "");
+    t.className = "tab " + (i===current?"active":"");
     t.innerText = "Slide " + (i+1);
-
     t.onclick = ()=>switchSlide(i);
-
     tabs.appendChild(t);
   });
 }
 
 /* =========================
-   EDITOR PANEL CONTROL
+   EDITOR PANEL
 ========================= */
 function toggleEditor(){
   panel.classList.toggle("open");
 }
 
 /* =========================
-   PDF EXPORT ENGINE (FIX จริง)
+   🔥 PREPARE RENDER (แก้ CDN / font)
+========================= */
+async function prepareRender(html){
+
+  // inject HTML
+  renderRoot.innerHTML = html;
+
+  // 🔥 clone <head> resources (link + style)
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+
+  const links = temp.querySelectorAll("link");
+  const styles = temp.querySelectorAll("style");
+
+  const promises = [];
+
+  // โหลด external CSS (Google Fonts ฯลฯ)
+  links.forEach(link=>{
+    if(link.href){
+      const newLink = document.createElement("link");
+      newLink.rel = "stylesheet";
+      newLink.href = link.href;
+
+      document.head.appendChild(newLink);
+
+      promises.push(new Promise(res=>{
+        newLink.onload = res;
+        setTimeout(res, 1200); // fallback
+      }));
+    }
+  });
+
+  // inject inline style
+  styles.forEach(style=>{
+    const newStyle = document.createElement("style");
+    newStyle.innerHTML = style.innerHTML;
+    document.head.appendChild(newStyle);
+  });
+
+  // 🔥 รอ font โหลด
+  if(document.fonts){
+    promises.push(document.fonts.ready);
+  }
+
+  await Promise.all(promises);
+
+  return renderRoot.firstElementChild;
+}
+
+/* =========================
+   WAIT RENDER
+========================= */
+function waitForRender(){
+  return new Promise(res=>{
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(res);
+    });
+  });
+}
+
+/* =========================
+   🔥 EXPORT PDF (FIX จริง)
 ========================= */
 async function exportPDF(){
 
@@ -99,26 +156,23 @@ async function exportPDF(){
 
   for(let i=0;i<slides.length;i++){
 
-    // inject HTML ลง DOM จริง (ไม่ใช้ iframe แล้ว)
-    renderRoot.innerHTML = slides[i];
+    let el = await prepareRender(slides[i]);
 
-    let el = renderRoot.firstElementChild;
-
-    // 🔥 บังคับขนาดแน่นอน
+    // 🔥 lock size
     el.style.width = "1280px";
     el.style.height = "720px";
     el.style.margin = "0";
     el.style.padding = "0";
 
-    // 🔥 รอ render เสถียร (สำคัญมาก)
-    await waitForRender(el);
+    await waitForRender();
+    await new Promise(r=>setTimeout(r,200));
 
     const canvas = await html2canvas(el,{
       width:1280,
       height:720,
       scale:2,
       useCORS:true,
-      backgroundColor:null
+      backgroundColor:"#ffffff"
     });
 
     const img = canvas.toDataURL("image/png");
@@ -132,20 +186,7 @@ async function exportPDF(){
 }
 
 /* =========================
-   WAIT RENDER (สำคัญมาก)
-========================= */
-function waitForRender(el){
-  return new Promise(resolve=>{
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        resolve();
-      });
-    });
-  });
-}
-
-/* =========================
-   OPTIONAL: AUTO SAVE
+   AUTO SAVE
 ========================= */
 function save(){
   localStorage.setItem("slides", JSON.stringify(slides));
