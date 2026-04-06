@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HTML Slide Engine</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <link rel="stylesheet" href="styles.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Slide Engine</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
+<body>
+    <header>
+        <div class="logo">🚀 HTML Slide Engine</div>
+        <div class="actions">
+            <button id="btn-add-slide" class="btn primary">➕ เพิ่มสไลด์</button>
+            <button id="btn-export-pdf" class="btn danger">📄 Export PDF</button>
+        </div>
+    </header>
 
-<body class="bg-gray-900 text-white">
+    <div class="tabs-container" id="tabs-container">
+        </div>
 
-  <!-- Top Bar -->
-  <div class="toolbar">
-    <button onclick="addSlide()">➕ เพิ่มหน้า</button>
-    <button onclick="toggleView()">🔄 สลับมุมมอง</button>
-    <button onclick="exportPDF()">📄 Export PDF</button>
-  </div>
+    <div class="mobile-toolbar">
+        <button id="btn-toggle-view" class="btn outline">📱 สลับมุมมอง Editor / Preview</button>
+    </div>
 
-  <!-- Tabs -->
-  <div id="tabs" class="tabs"></div>
+    <main class="workspace" id="workspace">
+        <section class="pane editor-pane" id="editor-pane">
+            <textarea id="html-editor" placeholder="เขียน HTML, CSS, JS ของคุณที่นี่..."></textarea>
+        </section>
 
-  <!-- Main -->
-  <div class="container">
+        <section class="pane preview-pane" id="preview-pane">
+            <div class="iframe-wrapper">
+                <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
+            </div>
+        </section>
+    </main>
 
-    <!-- Editor -->
-    <textarea id="editor" spellcheck="false"></textarea>
+    <div id="loading-overlay" class="hidden">
+        <div class="loader">กำลังสร้าง PDF...</div>
+    </div>
 
-    <!-- Preview -->
-    <iframe id="preview"></iframe>
+    <div id="export-container" class="hidden-export">
+        <iframe id="export-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
 
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
