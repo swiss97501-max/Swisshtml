@@ -1,132 +1,105 @@
 let slides = [
-`<div style="
-width:1280px;
-height:720px;
-background:#0f172a;
-color:white;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:40px;
-">
+`<html>
+<body style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:40px;">
 Slide 1
-</div>`
+</body>
+</html>`
 ];
 
 let current = 0;
+let mobileView = false;
 
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const tabs = document.getElementById("tabs");
-const panel = document.getElementById("editorPanel");
-const renderRoot = document.getElementById("renderRoot");
 
-/* INIT */
-function init(){
-  renderTabs();
-  loadSlide();
-}
-
-/* PREVIEW */
-function renderPreview(){
+/* 🔷 Render */
+function render() {
   preview.srcdoc = slides[current];
 }
 
-/* LOAD */
-function loadSlide(){
-  editor.value = slides[current];
-  renderPreview();
+/* 🔷 Tabs */
+function renderTabs() {
+  tabs.innerHTML = "";
+
+  slides.forEach((_, i) => {
+    const tab = document.createElement("div");
+    tab.className = "tab" + (i === current ? " active" : "");
+    tab.innerText = "Slide " + (i + 1);
+
+    tab.onclick = () => {
+      save();
+      current = i;
+      editor.value = slides[current];
+      render();
+      renderTabs();
+    };
+
+    tabs.appendChild(tab);
+  });
 }
 
-/* EDIT */
-editor.addEventListener("input", ()=>{
+/* 🔷 Save */
+function save() {
   slides[current] = editor.value;
-  renderPreview();
+}
+
+/* 🔷 Editor typing */
+editor.addEventListener("input", () => {
+  save();
+  render();
 });
 
-/* SLIDES */
-function addSlide(){
-  slides.push(`<div style="width:1280px;height:720px;background:black;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
+/* 🔷 Add Slide */
+function addSlide() {
+  save();
+  slides.push("<html><body>New Slide</body></html>");
   current = slides.length - 1;
+  editor.value = slides[current];
   renderTabs();
-  loadSlide();
+  render();
 }
 
-function switchSlide(i){
-  current = i;
-  renderTabs();
-  loadSlide();
+/* 🔷 Toggle Mobile */
+function toggleView() {
+  mobileView = !mobileView;
+  document.body.classList.toggle("mobile", mobileView);
 }
 
-function renderTabs(){
-  tabs.innerHTML = "";
-  slides.forEach((_,i)=>{
-    let t = document.createElement("div");
-    t.className = "tab " + (i===current?"active":"");
-    t.innerText = "Slide " + (i+1);
-    t.onclick = ()=>switchSlide(i);
-    tabs.appendChild(t);
-  });
-}
-
-/* EDITOR */
-function toggleEditor(){
-  panel.classList.toggle("open");
-}
-
-/* 🔥 WAIT RENDER */
-function waitRender(){
-  return new Promise(resolve=>{
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(resolve);
-    });
-  });
-}
-
-/* 🔥 EXPORT PDF (แก้จริง) */
-async function exportPDF(){
-
+/* 🔷 Export PDF (แก้หน้าขาว) */
+async function exportPDF() {
   const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
 
-  const pdf = new jsPDF({
-    orientation: "landscape",
-    unit: "px",
-    format: [1280,720]
-  });
+  for (let i = 0; i < slides.length; i++) {
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.left = "-9999px";
+    iframe.srcdoc = slides[i];
+    document.body.appendChild(iframe);
 
-  for(let i=0;i<slides.length;i++){
+    await new Promise(r => setTimeout(r, 500));
 
-    renderRoot.innerHTML = slides[i];
-
-    let el = renderRoot.firstElementChild;
-
-    // 🔥 lock layout
-    el.style.width = "1280px";
-    el.style.height = "720px";
-    el.style.display = "block";
-
-    // 🔥 force browser render
-    document.body.offsetHeight;
-
-    await waitRender();
-    await new Promise(r=>setTimeout(r,100));
-
-    const canvas = await html2canvas(el,{
-      width:1280,
-      height:720,
-      scale:2,
-      backgroundColor:"#ffffff"
+    const canvas = await html2canvas(iframe.contentDocument.body, {
+      useCORS: true,
+      scale: 2
     });
 
     const img = canvas.toDataURL("image/png");
 
-    if(i>0) pdf.addPage();
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
 
-    pdf.addImage(img,"PNG",0,0,1280,720);
+    if (i > 0) pdf.addPage();
+    pdf.addImage(img, "PNG", 0, 0, width, height);
+
+    document.body.removeChild(iframe);
   }
 
   pdf.save("slides.pdf");
 }
 
-/* START */
-init();
+/* 🔷 Init */
+editor.value = slides[current];
+render();
+renderTabs();
