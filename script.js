@@ -69,21 +69,21 @@ function renderTabs(){
   });
 }
 
-/* editor toggle */
+/* EDITOR */
 function toggleEditor(){
   panel.classList.toggle("open");
 }
 
-/* wait render */
-function wait(){
-  return new Promise(r=>{
+/* 🔥 WAIT RENDER */
+function waitRender(){
+  return new Promise(resolve=>{
     requestAnimationFrame(()=>{
-      requestAnimationFrame(r);
+      requestAnimationFrame(resolve);
     });
   });
 }
 
-/* EXPORT PDF (no bug) */
+/* 🔥 EXPORT PDF (แก้จริง) */
 async function exportPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -100,15 +100,22 @@ async function exportPDF(){
 
     let el = renderRoot.firstElementChild;
 
+    // 🔥 lock layout
     el.style.width = "1280px";
     el.style.height = "720px";
+    el.style.display = "block";
 
-    await wait();
+    // 🔥 force browser render
+    document.body.offsetHeight;
+
+    await waitRender();
+    await new Promise(r=>setTimeout(r,100));
 
     const canvas = await html2canvas(el,{
       width:1280,
       height:720,
-      scale:2
+      scale:2,
+      backgroundColor:"#ffffff"
     });
 
     const img = canvas.toDataURL("image/png");
@@ -121,4 +128,5 @@ async function exportPDF(){
   pdf.save("slides.pdf");
 }
 
+/* START */
 init();
