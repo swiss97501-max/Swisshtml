@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   let currentPageIndex = 0;
+  let libsLoaded = false;
 
   // ============================================================
   // DOM
@@ -28,9 +29,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================
   renderTabs();
   loadPage();
+  applyResponsiveMode();
 
   // ============================================================
-  // FUNCTIONS
+  // RESPONSIVE (iPad FIX)
+  // ============================================================
+  function isTabletOrMobile() {
+    return window.innerWidth <= 1024;
+  }
+
+  function applyResponsiveMode() {
+    if (isTabletOrMobile()) {
+      editorPane.style.display = "flex";
+      previewPane.style.display = "none";
+    } else {
+      editorPane.style.display = "flex";
+      previewPane.style.display = "flex";
+    }
+  }
+
+  window.addEventListener("resize", applyResponsiveMode);
+
+  // ============================================================
+  // RENDER TABS
   // ============================================================
   function renderTabs() {
     tabsContainer.innerHTML = "";
@@ -62,15 +83,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ============================================================
+  // LOAD PAGE
+  // ============================================================
   function loadPage() {
     editor.value = pages[currentPageIndex].html;
     updatePreview();
   }
 
+  // ============================================================
+  // UPDATE PREVIEW
+  // ============================================================
   function updatePreview() {
     preview.innerHTML = pages[currentPageIndex].html;
   }
 
+  // ============================================================
+  // DELETE PAGE
+  // ============================================================
   function deletePage(index) {
     if (pages.length === 1) return;
 
@@ -104,10 +134,37 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ============================================================
-  // EXPORT PDF (โหลด lib ครั้งเดียว)
+  // TOGGLE (iPad / Mobile)
   // ============================================================
-  let libsLoaded = false;
+  if (showEditorBtn && showPreviewBtn) {
+    showEditorBtn.onclick = () => {
+      if (!isTabletOrMobile()) return;
+      editorPane.style.display = "flex";
+      previewPane.style.display = "none";
+    };
 
+    showPreviewBtn.onclick = () => {
+      if (!isTabletOrMobile()) return;
+      editorPane.style.display = "none";
+      previewPane.style.display = "flex";
+    };
+  }
+
+  // ============================================================
+  // LOAD SCRIPT (ONCE)
+  // ============================================================
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      document.body.appendChild(s);
+    });
+  }
+
+  // ============================================================
+  // EXPORT PDF
+  // ============================================================
   exportBtn.addEventListener("click", async () => {
 
     if (!libsLoaded) {
@@ -125,13 +182,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     for (let i = 0; i < pages.length; i++) {
+
       const wrapper = document.createElement("div");
 
       wrapper.style.width = "1280px";
       wrapper.style.height = "720px";
       wrapper.style.position = "fixed";
       wrapper.style.top = "-9999px";
+      wrapper.style.left = "0";
       wrapper.style.background = "#0f172a";
+      wrapper.style.overflow = "hidden";
 
       wrapper.innerHTML = pages[i].html;
       document.body.appendChild(wrapper);
@@ -153,29 +213,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pdf.save("slides.pdf");
   });
-
-  function loadScript(src) {
-    return new Promise((resolve) => {
-      const s = document.createElement("script");
-      s.src = src;
-      s.onload = resolve;
-      document.body.appendChild(s);
-    });
-  }
-
-  // ============================================================
-  // MOBILE TOGGLE
-  // ============================================================
-  if (showEditorBtn && showPreviewBtn) {
-    showEditorBtn.onclick = () => {
-      editorPane.style.display = "flex";
-      previewPane.style.display = "none";
-    };
-
-    showPreviewBtn.onclick = () => {
-      editorPane.style.display = "none";
-      previewPane.style.display = "flex";
-    };
-  }
 
 });
