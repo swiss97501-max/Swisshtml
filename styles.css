@@ -1,95 +1,76 @@
 body {
   margin: 0;
-  background: #0b0f1a;
-  font-family: sans-serif;
+  font-family: system-ui;
 }
 
-/* TOPBAR */
-.topbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 50px;
-
+.toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 0 10px;
+  gap: 10px;
+  padding: 10px;
   background: #111;
-  z-index: 1000;
+  border-bottom: 1px solid #333;
 }
 
-/* Tabs */
-#tabs {
+.toolbar button {
+  background: #2563eb;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  border-radius: 6px;
+}
+
+.tabs {
   display: flex;
-  gap: 6px;
+  overflow-x: auto;
+  background: #1a1a1a;
+  padding: 5px;
 }
 
 .tab {
   padding: 6px 10px;
+  margin-right: 5px;
   background: #333;
-  color: white;
+  border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .tab.active {
-  background: cyan;
-  color: black;
+  background: #2563eb;
 }
 
-/* Stage */
-.stage {
-  margin-top: 50px;
-  height: calc(100vh - 50px);
-
+.container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  height: calc(100vh - 100px);
+}
+
+/* Editor */
+#editor {
+  width: 50%;
+  height: 100%;
+  background: #0f172a;
+  color: #0ff;
+  padding: 10px;
+  font-family: monospace;
+  border: none;
+  outline: none;
 }
 
 /* Preview */
 #preview {
-  width: 90vw;
-  height: calc(90vw * 9 / 16);
-  background: white;
-  border: none;
-}
-
-/* Editor */
-#editorPanel {
-  position: fixed;
-  top: 50px;
-  right: -50%;
   width: 50%;
-  height: calc(100% - 50px);
-  background: black;
-  transition: 0.3s;
-  z-index: 900;
-}
-
-#editorPanel.open {
-  right: 0;
-}
-
-#editor {
-  width: 100%;
   height: 100%;
-  background: black;
-  color: #0f0;
   border: none;
-  padding: 10px;
-  font-family: monospace;
+  background: white;
 }
 
-/* 🔥 FIX สำคัญ: renderRoot ต้องอยู่ใน viewport */
-#renderRoot {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* 📱 Mobile Mode */
+.mobile .container {
+  flex-direction: column;
+}
 
-  opacity: 0;           /* มองไม่เห็น */
-  pointer-events: none; /* ไม่บัง UI */
-
-  z-index: -1;
+.mobile #editor,
+.mobile #preview {
+  width: 100%;
+  height: 50%;
 }
