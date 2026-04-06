@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Slide Engine Pro</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
 
 <link rel="stylesheet" href="styles.css">
 
@@ -25,17 +31,17 @@
   </div>
 </div>
 
-<!-- Preview (Main) -->
+<!-- Stage -->
 <div class="stage">
   <iframe id="preview"></iframe>
 </div>
 
-<!-- Editor (Overlay Panel) -->
+<!-- Editor -->
 <div id="editorPanel">
   <textarea id="editor"></textarea>
 </div>
 
-<!-- Hidden render root (สำคัญมาก) -->
+<!-- hidden render -->
 <div id="renderRoot"></div>
 
 <script src="script.js"></script>
