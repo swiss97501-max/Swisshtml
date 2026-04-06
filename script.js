@@ -1,79 +1,81 @@
-let slides = [
-  `<h1>Hello Slide</h1><p>Start editing...</p>`
-];
+let slides = [`<div style="width:1280px;height:720px;background:#111;color:white;display:flex;align-items:center;justify-content:center;"><h1>Hello</h1></div>`];
 
 let current = 0;
+let mode = "preview"; // preview | editor
 
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const tabs = document.getElementById("tabs");
+const container = document.querySelector(".container");
 
-/* ===== INIT ===== */
+/* INIT */
 function init() {
+  updateMode();
   renderTabs();
   loadSlide();
 }
 
-/* ===== LOAD SLIDE ===== */
+/* MODE SWITCH */
+function toggleMode() {
+  mode = (mode === "preview") ? "editor" : "preview";
+  updateMode();
+}
+
+function updateMode() {
+  container.classList.remove("show-editor", "show-preview");
+  container.classList.add(mode === "editor" ? "show-editor" : "show-preview");
+}
+
+/* LOAD */
 function loadSlide() {
   editor.value = slides[current];
   renderPreview();
 }
 
-/* ===== RENDER PREVIEW (REAL) ===== */
+/* PREVIEW REAL */
 function renderPreview() {
   preview.srcdoc = slides[current];
 }
 
-/* ===== UPDATE EDITOR ===== */
+/* EDIT */
 editor.addEventListener("input", () => {
   slides[current] = editor.value;
   renderPreview();
 });
 
-/* ===== ADD SLIDE ===== */
+/* SLIDES */
 function addSlide() {
-  slides.push("<h1>New Slide</h1>");
+  slides.push("<div style='width:1280px;height:720px;background:black;color:white;'>New</div>");
   current = slides.length - 1;
   renderTabs();
   loadSlide();
 }
 
-/* ===== SWITCH TAB ===== */
 function switchSlide(i) {
   current = i;
   renderTabs();
   loadSlide();
 }
 
-/* ===== RENDER TABS ===== */
 function renderTabs() {
   tabs.innerHTML = "";
   slides.forEach((_, i) => {
-    const tab = document.createElement("div");
-    tab.className = "tab " + (i === current ? "active" : "");
-    tab.innerText = "Slide " + (i + 1);
-    tab.onclick = () => switchSlide(i);
-    tabs.appendChild(tab);
+    let t = document.createElement("div");
+    t.className = "tab " + (i === current ? "active" : "");
+    t.innerText = "Slide " + (i+1);
+    t.onclick = () => switchSlide(i);
+    tabs.appendChild(t);
   });
 }
 
-/* ===== TOGGLE VIEW (Mobile) ===== */
-let showEditor = true;
-
-function toggleView() {
-  if (window.innerWidth > 900) return;
-
-  showEditor = !showEditor;
-
-  editor.classList.toggle("hide", !showEditor);
-  preview.classList.toggle("hide", showEditor);
-}
-
-/* ===== EXPORT PDF ===== */
+/* 🔥 EXPORT PDF FIX */
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "px",
+    format: [1280, 720] // match slide
+  });
 
   for (let i = 0; i < slides.length; i++) {
 
@@ -86,13 +88,17 @@ async function exportPDF() {
 
     await new Promise(r => setTimeout(r, 300));
 
-    const canvas = await html2canvas(iframe.contentDocument.body);
+    const canvas = await html2canvas(iframe.contentDocument.body, {
+      width: 1280,
+      height: 720,
+      scale: 2
+    });
 
     const img = canvas.toDataURL("image/png");
 
     if (i > 0) pdf.addPage();
 
-    pdf.addImage(img, "PNG", 0, 0, 210, 297);
+    pdf.addImage(img, "PNG", 0, 0, 1280, 720);
 
     document.body.removeChild(iframe);
   }
@@ -100,5 +106,4 @@ async function exportPDF() {
   pdf.save("slides.pdf");
 }
 
-/* ===== START ===== */
 init();
