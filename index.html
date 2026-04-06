@@ -3,59 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Swiss HTML → PDF</title>
-
+  <title>Swiss Slide</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 
-  <!-- ========================================================= -->
-  <!-- HEADER -->
-  <!-- ========================================================= -->
   <div class="header">
     <div class="logo">SWISS</div>
-
     <div class="controls">
       <button id="addPageBtn">+ Page</button>
       <button id="exportBtn">Export PDF</button>
     </div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- MOBILE / TABLET TOGGLE -->
-  <!-- ========================================================= -->
   <div class="mobile-toggle">
     <button id="showEditorBtn">HTML</button>
     <button id="showPreviewBtn">Preview</button>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- PAGE TABS -->
-  <!-- ========================================================= -->
   <div id="pageTabs" class="tabs"></div>
 
-  <!-- ========================================================= -->
-  <!-- MAIN -->
-  <!-- ========================================================= -->
   <div class="main">
-
-    <!-- EDITOR -->
     <div id="editorPane" class="pane">
-      <textarea id="editor" spellcheck="false"></textarea>
+      <textarea id="editor"></textarea>
     </div>
 
-    <!-- PREVIEW -->
     <div id="previewPane" class="pane">
       <div id="preview" class="preview"></div>
     </div>
-
   </div>
 
-  <!-- ========================================================= -->
-  <!-- SCRIPT -->
-  <!-- ========================================================= -->
   <script src="script.js"></script>
-
 </body>
 </html>
