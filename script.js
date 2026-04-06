@@ -1,45 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ============================================================
-  // STATE
-  // ============================================================
   let pages = [
     { id: Date.now(), html: "<h1 style='color:white'>Page 1</h1>" }
   ];
 
   let currentPageIndex = 0;
-  let libsLoaded = false;
 
-  // ============================================================
-  // DOM
-  // ============================================================
-  const tabsContainer = document.getElementById("pageTabs");
+  const tabs = document.getElementById("pageTabs");
   const editor = document.getElementById("editor");
   const preview = document.getElementById("preview");
+
   const addBtn = document.getElementById("addPageBtn");
   const exportBtn = document.getElementById("exportBtn");
 
   const editorPane = document.getElementById("editorPane");
   const previewPane = document.getElementById("previewPane");
+
   const showEditorBtn = document.getElementById("showEditorBtn");
   const showPreviewBtn = document.getElementById("showPreviewBtn");
 
-  // ============================================================
-  // INIT
-  // ============================================================
-  renderTabs();
-  loadPage();
-  applyResponsiveMode();
-
-  // ============================================================
-  // RESPONSIVE (iPad FIX)
-  // ============================================================
-  function isTabletOrMobile() {
+  // =========================================================
+  // RESPONSIVE
+  // =========================================================
+  function isMobile() {
     return window.innerWidth <= 1024;
   }
 
-  function applyResponsiveMode() {
-    if (isTabletOrMobile()) {
+  function applyMode() {
+    if (isMobile()) {
       editorPane.style.display = "flex";
       previewPane.style.display = "none";
     } else {
@@ -48,81 +36,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  window.addEventListener("resize", applyResponsiveMode);
+  window.addEventListener("resize", applyMode);
 
-  // ============================================================
-  // RENDER TABS
-  // ============================================================
+  // =========================================================
+  // TABS
+  // =========================================================
   function renderTabs() {
-    tabsContainer.innerHTML = "";
+    tabs.innerHTML = "";
 
-    pages.forEach((page, index) => {
+    pages.forEach((p, i) => {
       const tab = document.createElement("div");
-      tab.className = "page-tab" + (index === currentPageIndex ? " active" : "");
-
-      const title = document.createElement("span");
-      title.textContent = "Page " + (index + 1);
-
-      const del = document.createElement("button");
-      del.textContent = "×";
-
-      del.onclick = (e) => {
-        e.stopPropagation();
-        deletePage(index);
-      };
+      tab.className = "page-tab" + (i === currentPageIndex ? " active" : "");
+      tab.textContent = "Page " + (i + 1);
 
       tab.onclick = () => {
-        currentPageIndex = index;
+        currentPageIndex = i;
         loadPage();
         renderTabs();
       };
 
-      tab.appendChild(title);
-      tab.appendChild(del);
-      tabsContainer.appendChild(tab);
+      tabs.appendChild(tab);
     });
   }
 
-  // ============================================================
-  // LOAD PAGE
-  // ============================================================
+  // =========================================================
+  // LOAD
+  // =========================================================
   function loadPage() {
     editor.value = pages[currentPageIndex].html;
     updatePreview();
   }
 
-  // ============================================================
-  // UPDATE PREVIEW
-  // ============================================================
   function updatePreview() {
     preview.innerHTML = pages[currentPageIndex].html;
   }
 
-  // ============================================================
-  // DELETE PAGE
-  // ============================================================
-  function deletePage(index) {
-    if (pages.length === 1) return;
-
-    pages.splice(index, 1);
-
-    if (currentPageIndex >= pages.length) {
-      currentPageIndex = pages.length - 1;
-    }
-
-    renderTabs();
-    loadPage();
-  }
-
-  // ============================================================
+  // =========================================================
   // EVENTS
-  // ============================================================
+  // =========================================================
   editor.addEventListener("input", () => {
     pages[currentPageIndex].html = editor.value;
     updatePreview();
   });
 
-  addBtn.addEventListener("click", () => {
+  addBtn.onclick = () => {
     pages.push({
       id: Date.now(),
       html: "<h1 style='color:white'>New Page</h1>"
@@ -131,47 +88,30 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPageIndex = pages.length - 1;
     renderTabs();
     loadPage();
-  });
+  };
 
-  // ============================================================
-  // TOGGLE (iPad / Mobile)
-  // ============================================================
-  if (showEditorBtn && showPreviewBtn) {
-    showEditorBtn.onclick = () => {
-      if (!isTabletOrMobile()) return;
-      editorPane.style.display = "flex";
-      previewPane.style.display = "none";
-    };
+  // =========================================================
+  // TOGGLE
+  // =========================================================
+  showEditorBtn.onclick = () => {
+    if (!isMobile()) return;
+    editorPane.style.display = "flex";
+    previewPane.style.display = "none";
+  };
 
-    showPreviewBtn.onclick = () => {
-      if (!isTabletOrMobile()) return;
-      editorPane.style.display = "none";
-      previewPane.style.display = "flex";
-    };
-  }
+  showPreviewBtn.onclick = () => {
+    if (!isMobile()) return;
+    editorPane.style.display = "none";
+    previewPane.style.display = "flex";
+  };
 
-  // ============================================================
-  // LOAD SCRIPT (ONCE)
-  // ============================================================
-  function loadScript(src) {
-    return new Promise((resolve) => {
-      const s = document.createElement("script");
-      s.src = src;
-      s.onload = resolve;
-      document.body.appendChild(s);
-    });
-  }
-
-  // ============================================================
+  // =========================================================
   // EXPORT PDF
-  // ============================================================
-  exportBtn.addEventListener("click", async () => {
+  // =========================================================
+  exportBtn.onclick = async () => {
 
-    if (!libsLoaded) {
-      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
-      libsLoaded = true;
-    }
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
 
     const { jsPDF } = window.jspdf;
 
@@ -184,26 +124,18 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < pages.length; i++) {
 
       const wrapper = document.createElement("div");
-
       wrapper.style.width = "1280px";
       wrapper.style.height = "720px";
       wrapper.style.position = "fixed";
       wrapper.style.top = "-9999px";
-      wrapper.style.left = "0";
-      wrapper.style.background = "#0f172a";
-      wrapper.style.overflow = "hidden";
-
       wrapper.innerHTML = pages[i].html;
+
       document.body.appendChild(wrapper);
 
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 200));
 
-      const canvas = await html2canvas(wrapper, {
-        scale: 2,
-        backgroundColor: "#0f172a"
-      });
-
-      const img = canvas.toDataURL("image/jpeg", 1.0);
+      const canvas = await html2canvas(wrapper);
+      const img = canvas.toDataURL("image/jpeg", 1);
 
       if (i > 0) pdf.addPage();
       pdf.addImage(img, "JPEG", 0, 0, 1280, 720);
@@ -212,6 +144,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     pdf.save("slides.pdf");
-  });
+  };
+
+  function loadScript(src) {
+    return new Promise(res => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = res;
+      document.body.appendChild(s);
+    });
+  }
+
+  // INIT
+  renderTabs();
+  loadPage();
+  applyMode();
 
 });
