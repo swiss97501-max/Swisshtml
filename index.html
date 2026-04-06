@@ -4,13 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Slide Engine Pro</title>
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+<title>Slide Engine Stable</title>
 
 <link rel="stylesheet" href="styles.css">
 
@@ -20,28 +14,24 @@
 
 <body>
 
-<!-- Topbar -->
 <div class="topbar">
   <div id="tabs"></div>
 
-  <div class="actions">
+  <div>
     <button onclick="addSlide()">＋</button>
     <button onclick="toggleEditor()">✏️</button>
     <button onclick="exportPDF()">PDF</button>
   </div>
 </div>
 
-<!-- Stage -->
 <div class="stage">
   <iframe id="preview"></iframe>
 </div>
 
-<!-- Editor -->
 <div id="editorPanel">
   <textarea id="editor"></textarea>
 </div>
 
-<!-- hidden render -->
 <div id="renderRoot"></div>
 
 <script src="script.js"></script>
