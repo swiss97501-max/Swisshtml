@@ -1,56 +1,53 @@
-/* =========================
-   STATE
-========================= */
+/* STATE */
 let slides = [
-`<div style="width:1280px;height:720px;background:#0f172a;color:white;display:flex;align-items:center;justify-content:center;">
-<h1>Slide 1</h1>
+`<div class="w-[1280px] h-[720px] bg-[#0f172a] text-white flex items-center justify-center">
+<h1 class="text-5xl font-bold">Slide 1</h1>
 </div>`
 ];
 
 let current = 0;
 
-/* =========================
-   ELEMENTS
-========================= */
+/* ELEMENTS */
 const editor = document.getElementById("editor");
 const preview = document.getElementById("preview");
 const tabs = document.getElementById("tabs");
 const panel = document.getElementById("editorPanel");
 const renderRoot = document.getElementById("renderRoot");
 
-/* =========================
-   INIT
-========================= */
+/* INIT */
 function init(){
   renderTabs();
   loadSlide();
 }
 
-/* =========================
-   PREVIEW (REAL RENDER)
-========================= */
+/* PREVIEW */
 function renderPreview(){
-  preview.srcdoc = slides[current];
+  preview.srcdoc = `
+  <html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun&family=Playfair+Display&display=swap" rel="stylesheet">
+  </head>
+  <body>${slides[current]}</body>
+  </html>
+  `;
 }
 
-/* =========================
-   LOAD / EDIT
-========================= */
+/* LOAD */
 function loadSlide(){
   editor.value = slides[current];
   renderPreview();
 }
 
+/* EDIT */
 editor.addEventListener("input", ()=>{
   slides[current] = editor.value;
   renderPreview();
 });
 
-/* =========================
-   SLIDES
-========================= */
+/* SLIDES */
 function addSlide(){
-  slides.push(`<div style="width:1280px;height:720px;background:black;color:white;display:flex;align-items:center;justify-content:center;">New Slide</div>`);
+  slides.push(`<div class="w-[1280px] h-[720px] bg-black text-white flex items-center justify-center">New Slide</div>`);
   current = slides.length - 1;
   renderTabs();
   loadSlide();
@@ -73,77 +70,21 @@ function renderTabs(){
   });
 }
 
-/* =========================
-   EDITOR PANEL
-========================= */
+/* EDITOR */
 function toggleEditor(){
   panel.classList.toggle("open");
 }
 
-/* =========================
-   🔥 PREPARE RENDER (แก้ CDN / font)
-========================= */
-async function prepareRender(html){
-
-  // inject HTML
-  renderRoot.innerHTML = html;
-
-  // 🔥 clone <head> resources (link + style)
-  const temp = document.createElement("div");
-  temp.innerHTML = html;
-
-  const links = temp.querySelectorAll("link");
-  const styles = temp.querySelectorAll("style");
-
-  const promises = [];
-
-  // โหลด external CSS (Google Fonts ฯลฯ)
-  links.forEach(link=>{
-    if(link.href){
-      const newLink = document.createElement("link");
-      newLink.rel = "stylesheet";
-      newLink.href = link.href;
-
-      document.head.appendChild(newLink);
-
-      promises.push(new Promise(res=>{
-        newLink.onload = res;
-        setTimeout(res, 1200); // fallback
-      }));
-    }
-  });
-
-  // inject inline style
-  styles.forEach(style=>{
-    const newStyle = document.createElement("style");
-    newStyle.innerHTML = style.innerHTML;
-    document.head.appendChild(newStyle);
-  });
-
-  // 🔥 รอ font โหลด
-  if(document.fonts){
-    promises.push(document.fonts.ready);
-  }
-
-  await Promise.all(promises);
-
-  return renderRoot.firstElementChild;
-}
-
-/* =========================
-   WAIT RENDER
-========================= */
-function waitForRender(){
-  return new Promise(res=>{
+/* WAIT RENDER */
+function wait(){
+  return new Promise(r=>{
     requestAnimationFrame(()=>{
-      requestAnimationFrame(res);
+      requestAnimationFrame(r);
     });
   });
 }
 
-/* =========================
-   🔥 EXPORT PDF (FIX จริง)
-========================= */
+/* 🔥 EXPORT PDF (fixed จริง) */
 async function exportPDF(){
 
   const { jsPDF } = window.jspdf;
@@ -156,23 +97,21 @@ async function exportPDF(){
 
   for(let i=0;i<slides.length;i++){
 
-    let el = await prepareRender(slides[i]);
+    renderRoot.innerHTML = slides[i];
 
-    // 🔥 lock size
+    let el = renderRoot.firstElementChild;
+
     el.style.width = "1280px";
     el.style.height = "720px";
-    el.style.margin = "0";
-    el.style.padding = "0";
 
-    await waitForRender();
-    await new Promise(r=>setTimeout(r,200));
+    await wait();
+    await document.fonts.ready;
 
     const canvas = await html2canvas(el,{
       width:1280,
       height:720,
       scale:2,
-      useCORS:true,
-      backgroundColor:"#ffffff"
+      useCORS:true
     });
 
     const img = canvas.toDataURL("image/png");
@@ -185,22 +124,5 @@ async function exportPDF(){
   pdf.save("slides.pdf");
 }
 
-/* =========================
-   AUTO SAVE
-========================= */
-function save(){
-  localStorage.setItem("slides", JSON.stringify(slides));
-}
-
-function load(){
-  const data = localStorage.getItem("slides");
-  if(data) slides = JSON.parse(data);
-}
-
-setInterval(save, 2000);
-
-/* =========================
-   START
-========================= */
-load();
+/* START */
 init();
