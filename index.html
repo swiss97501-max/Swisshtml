@@ -1,39 +1,44 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Swiss Slide</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
+  <title>HTML Slide Engine</title>
 
+  <link rel="stylesheet" href="styles.css"/>
+
+  <!-- PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
 <body>
 
-  <div class="header">
-    <div class="logo">SWISS</div>
-    <div class="controls">
-      <button id="addPageBtn">+ Page</button>
-      <button id="exportBtn">Export PDF</button>
+<div class="app">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="tabs" id="tabs"></div>
+
+    <div class="actions">
+      <button onclick="addSlide()">＋</button>
+      <button onclick="exportPDF()">Export PDF</button>
+      <button onclick="toggleView()">Toggle</button>
     </div>
   </div>
 
-  <div class="mobile-toggle">
-    <button id="showEditorBtn">HTML</button>
-    <button id="showPreviewBtn">Preview</button>
-  </div>
-
-  <div id="pageTabs" class="tabs"></div>
-
+  <!-- Main -->
   <div class="main">
-    <div id="editorPane" class="pane">
-      <textarea id="editor"></textarea>
-    </div>
 
-    <div id="previewPane" class="pane">
-      <div id="preview"></div>
-    </div>
+    <!-- Editor -->
+    <textarea id="editor"></textarea>
+
+    <!-- Preview -->
+    <iframe id="preview"></iframe>
+
   </div>
 
-  <script src="script.js"></script>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
