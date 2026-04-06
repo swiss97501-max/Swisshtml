@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML Slide Engine</title>
 
-<title>Slide Engine Stable</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<link rel="stylesheet" href="styles.css">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 
-<body>
+<body class="bg-gray-900 text-white">
 
-<div class="topbar">
-  <div id="tabs"></div>
-
-  <div>
-    <button onclick="addSlide()">＋</button>
-    <button onclick="toggleEditor()">✏️</button>
-    <button onclick="exportPDF()">PDF</button>
+  <!-- Top Bar -->
+  <div class="toolbar">
+    <button onclick="addSlide()">➕ เพิ่มหน้า</button>
+    <button onclick="toggleView()">🔄 สลับมุมมอง</button>
+    <button onclick="exportPDF()">📄 Export PDF</button>
   </div>
-</div>
 
-<div class="stage">
-  <iframe id="preview"></iframe>
-</div>
+  <!-- Tabs -->
+  <div id="tabs" class="tabs"></div>
 
-<div id="editorPanel">
-  <textarea id="editor"></textarea>
-</div>
+  <!-- Main -->
+  <div class="container">
 
-<div id="renderRoot"></div>
+    <!-- Editor -->
+    <textarea id="editor" spellcheck="false"></textarea>
 
-<script src="script.js"></script>
+    <!-- Preview -->
+    <iframe id="preview"></iframe>
+
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
