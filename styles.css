@@ -1,11 +1,11 @@
 body {
   margin: 0;
   background: #0b0f1a;
-  font-family: system-ui;
+  font-family: 'Sarabun', sans-serif;
   color: white;
 }
 
-/* 🔷 TOPBAR (fixed + ไม่โดนทับ) */
+/* TOPBAR */
 .topbar {
   position: fixed;
   top: 0;
@@ -21,7 +21,7 @@ body {
   background: rgba(20,20,30,0.9);
   backdrop-filter: blur(10px);
 
-  z-index: 1000; /* สำคัญ */
+  z-index: 1000;
 }
 
 /* Tabs */
@@ -61,12 +61,13 @@ body {
   border-radius: 12px;
   border: none;
   background: white;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.6);
 }
 
-/* 🔥 Editor Panel (ไม่ทับ topbar) */
+/* Editor Panel */
 #editorPanel {
   position: fixed;
-  top: 50px; /* 👈 สำคัญ */
+  top: 50px;
   right: -50%;
 
   width: 50%;
@@ -75,7 +76,7 @@ body {
   background: #020617;
   transition: 0.3s;
 
-  z-index: 900; /* ต่ำกว่า topbar */
+  z-index: 900;
 }
 
 #editorPanel.open {
@@ -90,6 +91,14 @@ body {
   color: #0f0;
   border: none;
   padding: 12px;
+  font-family: monospace;
+}
+
+/* hidden render */
+#renderRoot {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
 }
 
 /* Mobile */
