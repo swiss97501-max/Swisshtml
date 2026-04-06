@@ -3,75 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Swiss Slide PDF Engine</title>
+  <title>Swiss HTML → PDF</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body class="bg-[#020617] text-white font-sans">
+<body>
 
-<div class="flex h-screen w-full overflow-hidden">
+  <!-- ========================================================= -->
+  <!-- HEADER -->
+  <!-- ========================================================= -->
+  <div class="header">
+    <div class="logo">SWISS</div>
 
-  <!-- Sidebar -->
-  <aside class="w-56 md:w-64 bg-[#0f172a] border-r border-white/5 flex flex-col">
+    <div class="controls">
+      <button id="addPageBtn">+ Page</button>
+      <button id="exportBtn">Export PDF</button>
+    </div>
+  </div>
 
-    <div class="p-4 md:p-6 border-b border-white/5 flex justify-between items-center">
-      <h1 class="text-sm md:text-lg font-bold">SWISS</h1>
-      <button id="addPageBtn" class="text-gray-400 hover:text-white text-xl">＋</button>
+  <!-- ========================================================= -->
+  <!-- MOBILE / TABLET TOGGLE -->
+  <!-- ========================================================= -->
+  <div class="mobile-toggle">
+    <button id="showEditorBtn">HTML</button>
+    <button id="showPreviewBtn">Preview</button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PAGE TABS -->
+  <!-- ========================================================= -->
+  <div id="pageTabs" class="tabs"></div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN -->
+  <!-- ========================================================= -->
+  <div class="main">
+
+    <!-- EDITOR -->
+    <div id="editorPane" class="pane">
+      <textarea id="editor" spellcheck="false"></textarea>
     </div>
 
-    <div id="pageTabs" class="flex-1 overflow-y-auto p-2 md:p-3 space-y-1"></div>
-
-    <div class="p-3 md:p-4 border-t border-white/5">
-      <button id="exportBtn" class="w-full bg-white text-black py-2 rounded-lg text-sm">
-        Export PDF
-      </button>
+    <!-- PREVIEW -->
+    <div id="previewPane" class="pane">
+      <div id="preview" class="preview"></div>
     </div>
 
-  </aside>
+  </div>
 
-  <!-- Main -->
-  <main class="flex-1 flex flex-col">
-
-    <!-- Header -->
-    <div class="h-12 md:h-14 border-b border-white/5 flex items-center justify-between px-4 md:px-6 text-xs md:text-sm text-gray-400 uppercase tracking-wider">
-      <span>HTML Slide Editor</span>
-
-      <!-- Mobile Toggle -->
-      <div class="flex md:hidden gap-2">
-        <button id="showEditorBtn" class="px-3 py-1 bg-white text-black rounded">Editor</button>
-        <button id="showPreviewBtn" class="px-3 py-1 bg-white/10 rounded">Preview</button>
-      </div>
-    </div>
-
-    <!-- Content -->
-    <div class="flex flex-1 overflow-hidden">
-
-      <!-- Editor -->
-      <div id="editorPane" class="flex flex-col w-full md:w-1/2 border-r border-white/5">
-        <div class="p-3 md:p-4 text-xs text-gray-500 uppercase">Editor</div>
-
-        <textarea
-          id="editor"
-          placeholder="Write your HTML slide..."
-          class="flex-1 bg-[#0f172a] text-white p-4 outline-none resize-none text-sm"
-        ></textarea>
-      </div>
-
-      <!-- Preview -->
-      <div id="previewPane" class="hidden md:flex w-full md:w-1/2 items-center justify-center p-4 md:p-6">
-        <div id="preview"></div>
-      </div>
-
-    </div>
-
-  </main>
-
-</div>
-
-<script src="script.js"></script>
+  <!-- ========================================================= -->
+  <!-- SCRIPT -->
+  <!-- ========================================================= -->
+  <script src="script.js"></script>
 
 </body>
 </html>
