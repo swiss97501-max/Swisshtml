@@ -2,7 +2,7 @@
     --bg-dark: #0f172a;
     --editor-bg: #1e293b;
     --accent: #38bdf8;
-    --editor-text-green: #4ade80; /* ✅ เพิ่มสีเขียวสำหรับ Editor */
+    --editor-text-green: #4ade80; 
 }
 
 body, html {
@@ -53,7 +53,6 @@ header {
     resize: none;
 }
 
-/* ✅ ปรับสี Placeholder เป็นสีเขียวอ่อนๆ */
 #html-editor::placeholder {
     color: #4ade8070;
 }
