@@ -1,128 +1,104 @@
-// --- Configuration & State ---
-const BASE_WIDTH = 1280;
-const BASE_HEIGHT = 720;
+let slides = [{ id: 1, content: '<h1>Slide 1</h1>' }];
+let activeId = 1;
 
-let slides = [{
-    id: Date.now(),
-    html: `<div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white p-20">
-    <div class="h-1 w-20 bg-sky-400 mb-8"></div>
-    <h1 class="text-7xl font-bold mb-4">HTML SLIDE</h1>
-    <p class="text-2xl text-slate-400">Professional Preview System</p>
-</div>`
-}];
+const editor = document.getElementById('html-editor');
+const frame = document.getElementById('preview-frame');
+const wrapper = document.getElementById('slide-wrapper');
 
-let activeId = slides[0].id;
-const editor = document.getElementById('code-editor');
-const preview = document.getElementById('preview-iframe');
-const wrapper = document.getElementById('canvas-wrapper');
+// --- 1. Real-time Rendering ---
+function updatePreview() {
+    const slide = slides.find(s => s.id === activeId);
+    slide.content = editor.value;
 
-// --- Core Functions ---
-
-function updateIframe(targetIframe, content) {
     const fullDoc = `
-        <!DOCTYPE html>
         <html>
             <head>
                 <script src="https://cdn.tailwindcss.com"></script>
-                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;700&display=swap" rel="stylesheet">
                 <style>
-                    body { margin: 0; padding: 0; overflow: hidden; font-family: 'Sarabun', sans-serif; width: ${BASE_WIDTH}px; height: ${BASE_HEIGHT}px; }
+                    body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; }
                 </style>
             </head>
-            <body>${content}</body>
+            <body>${slide.content}</body>
         </html>
     `;
-    targetIframe.srcdoc = fullDoc;
+    frame.srcdoc = fullDoc;
+    autoScale();
 }
 
-function fitToScreen() {
-    const container = document.getElementById('preview-container');
-    const availableWidth = container.clientWidth - 60;
-    const availableHeight = container.clientHeight - 60;
-
-    const scale = Math.min(availableWidth / BASE_WIDTH, availableHeight / BASE_HEIGHT);
-    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกิน 100%
-
+// --- 2. Auto Scaling Logic ---
+function autoScale() {
+    const container = document.getElementById('preview-area');
+    const winW = container.clientWidth - 60;
+    const winH = container.clientHeight - 60;
+    
+    const scale = Math.min(winW / 1280, winH / 720);
+    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกินขนาดจริง
+    
     wrapper.style.transform = `scale(${finalScale})`;
+    document.getElementById('zoom-text').innerText = Math.round(finalScale * 100) + "%";
 }
 
-function renderTabs() {
-    const tabBar = document.getElementById('tab-bar');
-    tabBar.innerHTML = '';
-    slides.forEach((s, i) => {
-        const t = document.createElement('div');
-        t.className = `tab ${s.id === activeId ? 'active' : ''}`;
-        t.innerHTML = `Slide ${i + 1}`;
-        t.onclick = () => {
-            activeId = s.id;
-            editor.value = s.html;
-            renderTabs();
-            updateIframe(preview, s.html);
-        };
-        tabBar.appendChild(t);
-    });
-}
+window.addEventListener('resize', autoScale);
+editor.addEventListener('input', updatePreview);
 
-// --- Event Listeners ---
-
-editor.addEventListener('input', () => {
-    const slide = slides.find(s => s.id === activeId);
-    slide.html = editor.value;
-    updateIframe(preview, slide.html);
-});
-
-document.getElementById('btn-add').onclick = () => {
-    const newSlide = { id: Date.now(), html: '<div class="bg-white h-full p-20"><h1>New Slide</h1></div>' };
-    slides.push(newSlide);
-    activeId = newSlide.id;
-    editor.value = newSlide.html;
-    renderTabs();
-    updateIframe(preview, newSlide.html);
-};
-
-// Export Logic
-document.getElementById('btn-export').onclick = async () => {
+// --- 3. Professional PDF Export ---
+document.getElementById('btn-export-pdf').addEventListener('click', async () => {
     const loader = document.getElementById('loader');
-    const workerFrame = document.getElementById('export-iframe');
     loader.classList.remove('hidden');
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('landscape', 'px', [BASE_WIDTH, BASE_HEIGHT]);
+    const pdf = new jsPDF('l', 'px', [1280, 720]);
 
     for (let i = 0; i < slides.length; i++) {
-        updateIframe(workerFrame, slides[i].html);
-        
-        await new Promise(r => {
-            workerFrame.onload = () => setTimeout(r, 800); // รอ Tailwind/Fonts render
+        // สร้าง Temporary Container เพื่อ Render สไลด์ขนาดเต็มสำหรับแคปภาพ
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = '1280px';
+        tempDiv.style.height = '720px';
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '-2000px';
+        tempDiv.innerHTML = slides[i].content;
+        document.body.appendChild(tempDiv);
+
+        // รอ Tailwind/Images render แป๊บหนึ่ง
+        await new Promise(r => setTimeout(r, 400));
+
+        const canvas = await html2canvas(tempDiv, {
+            width: 1280, height: 720, scale: 2, // Scale 2 เพื่อความชัด
+            useCORS: true
         });
 
-        const canvas = await html2canvas(workerFrame.contentDocument.body, {
-            width: BASE_WIDTH,
-            height: BASE_HEIGHT,
-            scale: 2 // เพิ่มความคมชัดเป็น 2 เท่า
-        });
-
-        const img = canvas.toDataURL('image/jpeg', 0.9);
-        if (i > 0) pdf.addPage();
-        pdf.addImage(img, 'JPEG', 0, 0, BASE_WIDTH, BASE_HEIGHT);
+        if (i > 0) pdf.addPage([1280, 720], 'l');
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 1280, 720);
+        document.body.removeChild(tempDiv);
     }
 
-    pdf.save('my-slides.pdf');
+    pdf.save('presentation.pdf');
     loader.classList.add('hidden');
-};
-
-// Mobile Navigation
-const layout = document.getElementById('main-layout');
-layout.classList.add('show-editor');
-document.getElementById('toggle-view').onclick = () => {
-    layout.classList.toggle('show-editor');
-    layout.classList.toggle('show-preview');
-    setTimeout(fitToScreen, 50);
-};
+});
 
 // Init
-window.addEventListener('resize', fitToScreen);
-editor.value = slides[0].html;
+editor.value = slides[0].content;
+updatePreview();
 renderTabs();
-updateIframe(preview, slides[0].html);
-setTimeout(fitToScreen, 100);
+
+function renderTabs() {
+    const container = document.getElementById('tabs-container');
+    container.innerHTML = slides.map(s => `
+        <div class="tab ${s.id === activeId ? 'active' : ''}" onclick="switchSlide(${s.id})">
+            Slide ${slides.indexOf(s) + 1}
+        </div>
+    `).join('');
+}
+
+function switchSlide(id) {
+    activeId = id;
+    editor.value = slides.find(s => s.id === id).content;
+    updatePreview();
+    renderTabs();
+}
+
+document.getElementById('btn-add-slide').onclick = () => {
+    const newId = Date.now();
+    slides.push({ id: newId, content: '<div class="p-20"><h1>New Slide</h1></div>' });
+    switchSlide(newId);
+};
