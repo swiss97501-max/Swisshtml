@@ -2,47 +2,131 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Slide Engine</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <header class="main-header">
-        <div class="header-left">
-            <span class="logo">Slide Engine</span>
-        </div>
-        <div class="header-right">
-            <button id="btn-add-slide" class="btn primary">เพิ่มหน้า</button>
-            <button id="btn-export-pdf" class="btn danger">Export PDF</button>
-        </div>
-    </header>
 
-    <nav class="tabs-bar" id="tabs-container"></nav>
-
-    <div class="mobile-controls">
-        <button id="btn-toggle-view" class="btn-toggle">สลับ Editor / Preview</button>
-    </div>
-
-    <main class="workspace" id="workspace">
-        <section class="pane editor-pane">
-            <textarea id="html-editor" spellcheck="false" placeholder="เริ่มเขียน HTML..."></textarea>
-        </section>
-
-        <section class="pane preview-pane" id="preview-pane">
-            <div class="iframe-wrapper" id="iframe-wrapper">
-                <iframe id="preview-frame"></iframe>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"></div>
+                <span>Engine</span>
             </div>
-        </section>
-    </main>
+            <div class="nav-links">
+                <button id="btn-add-slide" class="nav-btn" title="เพิ่มสไลด์ใหม่">
+                    <i>+</i> <span>New Slide</span>
+                </button>
+                <button id="btn-export-pdf" class="nav-btn danger" title="ส่งออกเป็น PDF">
+                    <i>↓</i> <span>Export PDF</span>
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button id="btn-toggle-view" class="mobile-toggle">Swap View</button>
+            </div>
+        </aside>
+
+        <div class="main-layout">
+            <header class="top-nav">
+                <div class="tabs-scroll" id="tabs-container">
+                    </div>
+            </header>
+
+            <main class="workspace" id="workspace">
+                <section class="pane editor-pane">
+                    <div class="pane-label">HTML EDITOR</div>
+                    <textarea id="html-editor" spellcheck="false" placeholder="Start coding your slide..."></textarea>
+                </section>
+
+                <section class="pane preview-pane" id="preview-pane">
+                    <div class="pane-label">LIVE PREVIEW</div>
+                    <div class="iframe-wrapper" id="iframe-wrapper">
+                        <iframe id="preview-frame"></iframe>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 
     <div id="export-container" class="hidden-export">
         <iframe id="export-frame"></iframe>
     </div>
 
     <div id="loading-overlay" class="hidden">
-        <div class="loader">กำลังประมวลผล PDF...</div>
+        <div class="spinner"></div>
+        <p>Generating PDF...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Slide Engine</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"></div>
+                <span>Engine</span>
+            </div>
+            <div class="nav-links">
+                <button id="btn-add-slide" class="nav-btn" title="เพิ่มสไลด์ใหม่">
+                    <i>+</i> <span>New Slide</span>
+                </button>
+                <button id="btn-export-pdf" class="nav-btn danger" title="ส่งออกเป็น PDF">
+                    <i>↓</i> <span>Export PDF</span>
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button id="btn-toggle-view" class="mobile-toggle">Swap View</button>
+            </div>
+        </aside>
+
+        <div class="main-layout">
+            <header class="top-nav">
+                <div class="tabs-scroll" id="tabs-container">
+                    </div>
+            </header>
+
+            <main class="workspace" id="workspace">
+                <section class="pane editor-pane">
+                    <div class="pane-label">HTML EDITOR</div>
+                    <textarea id="html-editor" spellcheck="false" placeholder="Start coding your slide..."></textarea>
+                </section>
+
+                <section class="pane preview-pane" id="preview-pane">
+                    <div class="pane-label">LIVE PREVIEW</div>
+                    <div class="iframe-wrapper" id="iframe-wrapper">
+                        <iframe id="preview-frame"></iframe>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="export-container" class="hidden-export">
+        <iframe id="export-frame"></iframe>
+    </div>
+
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Generating PDF...</p>
     </div>
 
     <script src="script.js"></script>
