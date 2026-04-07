@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine v3 (Theme System)</title>
+    <title>HTML Slide Engine</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
-        <div class="logo">Slide Engine <span id="theme-indicator" style="font-size: 10px; opacity: 0.5;"></span></div>
-        <div class="theme-selector">
-            <button class="btn-theme" onclick="setTheme('dark')">Dark</button>
-            <button class="btn-theme" onclick="setTheme('light')">Light</button>
-            <button class="btn-theme" onclick="setTheme('neon')">Neon</button>
-        </div>
+        <div class="logo">Slide Engine</div>
         <div class="actions">
             <button id="btn-add-slide" class="btn primary">เพิ่มสไลด์</button>
             <button id="btn-export-pdf" class="btn danger">Export PDF</button>
@@ -30,8 +25,9 @@
 
     <main class="workspace" id="workspace">
         <section class="pane editor-pane">
-            <textarea id="html-editor" spellcheck="false" placeholder="ใช้ var(--bg), var(--text), var(--accent) ในการเขียน..."></textarea>
+            <textarea id="html-editor" spellcheck="false" placeholder="เขียน HTML/Tailwind ที่นี่..."></textarea>
         </section>
+
         <section class="pane preview-pane" id="preview-pane">
             <div class="iframe-wrapper" id="iframe-wrapper">
                 <iframe id="preview-frame"></iframe>
@@ -44,7 +40,7 @@
     </div>
 
     <div id="loading-overlay" class="hidden">
-        <div class="loader">กำลังสร้าง PDF พร้อม Theme...</div>
+        <div class="loader">กำลังสร้าง PDF...</div>
     </div>
 
     <script src="script.js"></script>
