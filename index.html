@@ -2,49 +2,43 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Professional HTML Slide Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Slide Engine Pro</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
-    <header class="app-header">
-        <div class="brand">SLIDE ENGINE</div>
+    <nav class="top-nav">
+        <div class="brand">SLIDE<span>ENGINE</span></div>
+        <div class="tab-scroller" id="tabs-container"></div>
         <div class="toolbar">
-            <button id="btn-add" class="btn btn-primary">Add Slide</button>
-            <button id="btn-export" class="btn btn-danger">Export PDF</button>
+            <button id="btn-add-slide" class="btn-icon" title="Add Slide">＋</button>
+            <button id="btn-export-pdf" class="btn-primary">Export PDF</button>
         </div>
-    </header>
+    </nav>
 
-    <nav class="tab-bar" id="tab-bar"></nav>
-
-    <div class="mobile-nav-toggle">
-        <button id="toggle-view">Switch Editor / Preview</button>
-    </div>
-
-    <main class="main-layout" id="main-layout">
-        <section class="editor-container">
-            <div class="pane-header">HTML / CSS Editor</div>
-            <textarea id="code-editor" spellcheck="false"></textarea>
+    <main class="app-shell">
+        <section class="editor-section">
+            <textarea id="html-editor" spellcheck="false"></textarea>
         </section>
-
-        <section class="preview-container" id="preview-container">
-            <div class="pane-header">Live Preview (16:9)</div>
-            <div class="canvas-wrapper" id="canvas-wrapper">
-                <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+        
+        <section class="preview-section" id="preview-area">
+            <div class="canvas-monitor">
+                <div class="slide-wrapper" id="slide-wrapper">
+                    <iframe id="preview-frame"></iframe>
+                </div>
             </div>
+            <div class="zoom-indicator" id="zoom-text">100%</div>
         </section>
     </main>
 
     <div id="loader" class="overlay hidden">
-        <div class="spinner"></div>
-        <p>Generating High-Quality PDF...</p>
-    </div>
-
-    <div class="hidden-worker">
-        <iframe id="export-iframe"></iframe>
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>กำลังประมวลผล PDF...</p>
+        </div>
     </div>
 
     <script src="script.js"></script>
