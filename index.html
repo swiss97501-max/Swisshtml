@@ -3,44 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine</title>
+    <title>HTML Slide Engine to PDF</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3>Slides</h3>
-                <button id="add-slide-btn" class="btn-primary">+</button>
-            </div>
-            <ul id="slide-list"></ul>
-            <div class="sidebar-footer">
-                <button id="export-pdf-btn" class="btn-success">Export All PDF</button>
-            </div>
-        </aside>
+    <header class="toolbar">
+        <div class="logo">SlideEngine <span>v1.0</span></div>
+        <div class="actions">
+            <button id="addSlideBtn" class="btn secondary">+ เพิ่มหน้า</button>
+            <button id="exportBtn" class="btn primary">📄 Export PDF</button>
+            <button id="toggleMode" class="btn mobile-only">สลับ Preview</button>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <header class="toolbar">
-                <button id="toggle-view" class="btn-secondary">Switch Editor/Preview</button>
-                <span id="current-slide-title">Slide 1</span>
-            </header>
+    <main class="app-container">
+        <nav class="slide-tabs" id="slideTabs">
+            </nav>
 
-            <div class="workspace">
-                <section class="editor-section">
-                    <textarea id="html-editor" placeholder="เขียน HTML/CSS/JS ที่นี่..."></textarea>
-                </section>
+        <div class="workspace">
+            <section class="editor-section" id="editorSection">
+                <div class="label">HTML Editor</div>
+                <textarea id="htmlInput" placeholder="เขียน HTML ที่นี่..."></textarea>
+            </section>
 
-                <section class="preview-section">
-                    <iframe id="preview-frame"></iframe>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <div id="pdf-render-container" style="position: absolute; left: -9999px; top: 0;"></div>
+            <section class="preview-section" id="previewSection">
+                <div class="label">Live Preview (A4)</div>
+                <div class="preview-wrapper">
+                    <iframe id="previewFrame"></iframe>
+                </div>
+            </section>
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
