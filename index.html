@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HTML Slide Engine v2</title>
+    <title>Professional HTML Slide Engine</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <header>
-        <div class="logo">Slide Engine</div>
-        <div class="actions">
-            <button id="btn-add-slide" class="btn primary">➕ เพิ่มสไลด์</button>
-            <button id="btn-export-pdf" class="btn danger">📄 Export PDF</button>
+
+    <header class="app-header">
+        <div class="brand">SLIDE ENGINE</div>
+        <div class="toolbar">
+            <button id="btn-add" class="btn btn-primary">Add Slide</button>
+            <button id="btn-export" class="btn btn-danger">Export PDF</button>
         </div>
     </header>
 
-    <div class="tabs-container" id="tabs-container"></div>
+    <nav class="tab-bar" id="tab-bar"></nav>
 
-    <div class="mobile-toolbar">
-        <button id="btn-toggle-view" class="btn outline">📱 สลับ Editor / Preview</button>
+    <div class="mobile-nav-toggle">
+        <button id="toggle-view">Switch Editor / Preview</button>
     </div>
 
-    <main class="workspace" id="workspace">
-        <section class="pane editor-pane">
-            <textarea id="html-editor" spellcheck="false" placeholder="เขียน HTML/Tailwind ที่นี่..."></textarea>
+    <main class="main-layout" id="main-layout">
+        <section class="editor-container">
+            <div class="pane-header">HTML / CSS Editor</div>
+            <textarea id="code-editor" spellcheck="false"></textarea>
         </section>
 
-        <section class="pane preview-pane" id="preview-pane">
-            <div class="iframe-wrapper" id="iframe-wrapper">
-                <iframe id="preview-frame"></iframe>
+        <section class="preview-container" id="preview-container">
+            <div class="pane-header">Live Preview (16:9)</div>
+            <div class="canvas-wrapper" id="canvas-wrapper">
+                <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
             </div>
         </section>
     </main>
 
-    <div id="loading-overlay" class="hidden">
-        <div class="loader">กำลังสร้าง PDF... กรุณารอสักครู่</div>
+    <div id="loader" class="overlay hidden">
+        <div class="spinner"></div>
+        <p>Generating High-Quality PDF...</p>
     </div>
 
-    <div class="hidden-export">
-        <iframe id="export-frame"></iframe>
+    <div class="hidden-worker">
+        <iframe id="export-iframe"></iframe>
     </div>
 
     <script src="script.js"></script>
