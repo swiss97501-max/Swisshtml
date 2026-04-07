@@ -1,121 +1,117 @@
-const { jsPDF } = window.jspdf;
+let slides = [{
+    id: Date.now(),
+    content: `<div class="w-[1280px] h-[720px] mx-auto flex flex-col justify-center items-center bg-[#0f172a] p-24 text-center relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-2 bg-[#38bdf8]"></div>
+    <h1 class="text-7xl font-bold text-white mb-4">ตรรกศาสตร์ (Logic)</h1>
+    <p class="text-2xl text-gray-400">การศึกษาความจริงอย่างเป็นระบบ</p>
+</div>`
+}];
 
-// --- State Management ---
-let slides = [
-    { html: `<div style="padding: 40px; text-align: center; color: #0a192f;">
-    <h1 style="font-size: 48px;">Slide 1</h1>
-    <p style="font-size: 24px;">Core Principle HTML Engine</p>
-    <div style="margin-top: 50px; color: green;">$$ E = mc^2 $$</div>
-</div>` }
-];
-let currentSlideIndex = 0;
+let activeSlideId = slides[0].id;
 
 // Elements
-const htmlEditor = document.getElementById('htmlEditor');
-const previewFrame = document.getElementById('previewFrame');
-const slideTabs = document.getElementById('slideTabs');
-const addSlideBtn = document.getElementById('addSlideBtn');
-const exportPdfBtn = document.getElementById('exportPdfBtn');
+const editor = document.getElementById('html-editor');
+const previewFrame = document.getElementById('preview-frame');
+const wrapper = document.getElementById('iframe-wrapper');
+const previewPane = document.getElementById('preview-pane');
 
-// --- Functions ---
+// --- Core Function: อัปเดต Preview ---
+function updatePreview() {
+    const activeSlide = slides.find(s => s.id === activeSlideId);
+    activeSlide.content = editor.value;
 
-function init() {
-    renderTabs();
-    loadSlide(0);
+    const fullDoc = `
+        <html>
+            <head>
+                <meta name="viewport" content="width=1280">
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>body { margin: 0; padding: 0; overflow: hidden; background: white; }</style>
+            </head>
+            <body>${activeSlide.content}</body>
+        </html>
+    `;
+    previewFrame.srcdoc = fullDoc;
+    setTimeout(fitSlide, 50); // ปรับ Scale หลังจากเนื้อหาโหลด
 }
 
-function renderTabs() {
-    slideTabs.innerHTML = '';
-    slides.forEach((_, index) => {
-        const tab = document.createElement('div');
-        tab.className = `slide-tab ${index === currentSlideIndex ? 'active' : ''}`;
-        tab.innerText = `Slide ${index + 1}`;
-        tab.onclick = () => loadSlide(index);
-        slideTabs.appendChild(tab);
-    });
-}
-
-function loadSlide(index) {
-    currentSlideIndex = index;
-    htmlEditor.value = slides[index].html;
-    renderPreview();
-    renderTabs();
-}
-
-function renderPreview() {
-    const content = htmlEditor.value;
-    slides[currentSlideIndex].html = content; // Update state
+// --- Core Function: ปรับขนาดสไลด์ให้พอดีหน้าจอ (Auto Scale) ---
+function fitSlide() {
+    const padding = 40;
+    const availableWidth = previewPane.clientWidth - padding;
+    const availableHeight = previewPane.clientHeight - padding;
     
-    // Inject content into Iframe
-    const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-    doc.open();
-    // เพิ่มสไตล์พื้นฐานให้สไลด์ และรองรับ LaTeX ผ่าน MathJax
-    doc.write(`
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <style>
-            body { margin: 0; font-family: sans-serif; background: white; min-height: 100vh; }
-        </style>
-        ${content}
-    `);
-    doc.close();
+    // อ้างอิงจาก 1280x720
+    const scale = Math.min(availableWidth / 1280, availableHeight / 720);
+    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกินขนาดจริง
+    
+    wrapper.style.transform = `scale(${finalScale})`;
 }
 
-// Event Listeners
-htmlEditor.addEventListener('input', renderPreview);
-
-addSlideBtn.addEventListener('click', () => {
-    slides.push({ html: '<h1>New Slide</h1>' });
-    loadSlide(slides.length - 1);
-});
-
-// --- PDF Export Logic ---
-exportPdfBtn.addEventListener('click', async () => {
-    exportPdfBtn.innerText = 'Generating...';
-    exportPdfBtn.disabled = true;
-
-    const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [1024, 768]
+// --- UI Management ---
+function renderTabs() {
+    const container = document.getElementById('tabs-container');
+    container.innerHTML = '';
+    slides.forEach((s, i) => {
+        const tab = document.createElement('div');
+        tab.className = `tab ${s.id === activeSlideId ? 'active' : ''}`;
+        tab.innerText = `Slide ${i + 1}`;
+        tab.onclick = () => {
+            activeSlideId = s.id;
+            editor.value = s.content;
+            renderTabs();
+            updatePreview();
+        };
+        container.appendChild(tab);
     });
+}
 
-    const exportContainer = document.getElementById('exportContainer');
+document.getElementById('btn-add-slide').onclick = () => {
+    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-white flex items-center justify-center text-4xl">สไลด์ใหม่</div>` };
+    slides.push(newSlide);
+    activeSlideId = newSlide.id;
+    editor.value = newSlide.content;
+    renderTabs();
+    updatePreview();
+};
+
+// --- PDF Export ---
+document.getElementById('btn-export-pdf').onclick = async () => {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.remove('hidden');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l', 'px', [1280, 720]);
+    const exportFrame = document.getElementById('export-frame');
 
     for (let i = 0; i < slides.length; i++) {
-        // 1. Create temporary element for rendering
-        const tempDiv = document.createElement('div');
-        tempDiv.style.width = '1024px';
-        tempDiv.style.height = '768px';
-        tempDiv.style.background = 'white';
-        tempDiv.innerHTML = slides[i].html;
-        exportContainer.appendChild(tempDiv);
-
-        // 2. Capture with html2canvas
-        const canvas = await html2canvas(tempDiv, {
-            scale: 2, // Higher quality
-            useCORS: true
-        });
-
-        const imgData = canvas.toDataURL('image/png');
+        const slide = slides[i];
+        exportFrame.srcdoc = `<html><head><script src="https://cdn.tailwindcss.com"></script></head><body>${slide.content}</body></html>`;
         
-        // 3. Add to PDF
-        if (i > 0) pdf.addPage([1024, 768], 'landscape');
-        pdf.addImage(imgData, 'PNG', 0, 0, 1024, 768);
+        await new Promise(r => setTimeout(r, 1000)); // รอ Tailwind Render
 
-        // 4. Cleanup
-        exportContainer.removeChild(tempDiv);
+        const canvas = await html2canvas(exportFrame.contentDocument.body, {
+            width: 1280, height: 720, scale: 1
+        });
+        
+        if (i > 0) pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 1280, 720);
     }
 
-    pdf.save('core-principle-slides.pdf');
-    exportPdfBtn.innerText = 'Export PDF';
-    exportPdfBtn.disabled = false;
-});
+    pdf.save('my-slides.pdf');
+    overlay.classList.add('hidden');
+};
 
-// Mobile Toggle logic
-document.getElementById('toggleMobile').addEventListener('click', () => {
-    document.getElementById('editorSection').classList.toggle('hidden');
-    document.getElementById('previewSection').classList.toggle('hidden');
-});
+// --- Init & Listeners ---
+window.addEventListener('resize', fitSlide);
+editor.oninput = updatePreview;
+document.getElementById('btn-toggle-view').onclick = () => {
+    document.getElementById('workspace').classList.toggle('view-preview');
+    document.getElementById('workspace').classList.toggle('view-editor');
+    setTimeout(fitSlide, 100);
+};
 
-init();
+// Setup เริ่มต้น
+document.getElementById('workspace').classList.add('view-editor');
+editor.value = slides[0].content;
+renderTabs();
+updatePreview();
