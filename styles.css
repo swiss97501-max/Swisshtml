@@ -2,6 +2,7 @@
     --bg-dark: #0f172a;
     --editor-bg: #1e293b;
     --accent: #38bdf8;
+    --editor-text-green: #4ade80; /* ✅ เพิ่มสีเขียวสำหรับ Editor */
 }
 
 body, html {
@@ -38,10 +39,23 @@ header {
 .workspace { display: flex; flex: 1; overflow: hidden; }
 .pane { flex: 1; display: flex; flex-direction: column; position: relative; }
 
+/* ✅ ปรับปรุงส่วน Editor: สีพื้นหลังเข้มขึ้น, อักษรเป็นสีเขียว */
 #html-editor {
-    flex: 1; background: var(--editor-bg); color: #94a3b8;
-    border: none; padding: 20px; font-family: 'Fira Code', monospace;
-    font-size: 14px; outline: none; resize: none;
+    flex: 1;
+    background: #111111; /* พื้นหลัง Editor เข้มขึ้น */
+    color: var(--editor-text-green); /* ตัวอักษรสีเขียว */
+    border: none;
+    padding: 20px;
+    font-family: 'Fira Code', 'Courier New', monospace; /* ใช้ Font ที่เป็น monospaced */
+    font-size: 14px;
+    line-height: 1.5;
+    outline: none;
+    resize: none;
+}
+
+/* ✅ ปรับสี Placeholder เป็นสีเขียวอ่อนๆ */
+#html-editor::placeholder {
+    color: #4ade8070;
 }
 
 /* Preview Auto Scaling Logic */
