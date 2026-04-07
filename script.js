@@ -1,125 +1,121 @@
 const { jsPDF } = window.jspdf;
 
-// --- State ---
+// --- State Management ---
 let slides = [
-    { id: Date.now(), content: `<div style="text-align:center; padding: 50px;"><h1>หน้าแรก</h1><p>เขียน HTML ได้ที่นี่</p></div>` }
+    { html: `<div style="padding: 40px; text-align: center; color: #0a192f;">
+    <h1 style="font-size: 48px;">Slide 1</h1>
+    <p style="font-size: 24px;">Core Principle HTML Engine</p>
+    <div style="margin-top: 50px; color: green;">$$ E = mc^2 $$</div>
+</div>` }
 ];
-let activeIndex = 0;
+let currentSlideIndex = 0;
 
-// --- Selectors ---
-const slideTabs = document.getElementById('slideTabs');
-const htmlInput = document.getElementById('htmlInput');
+// Elements
+const htmlEditor = document.getElementById('htmlEditor');
 const previewFrame = document.getElementById('previewFrame');
+const slideTabs = document.getElementById('slideTabs');
 const addSlideBtn = document.getElementById('addSlideBtn');
-const exportBtn = document.getElementById('exportBtn');
-const toggleModeBtn = document.getElementById('toggleMode');
+const exportPdfBtn = document.getElementById('exportPdfBtn');
 
 // --- Functions ---
 
 function init() {
     renderTabs();
-    loadActiveSlide();
+    loadSlide(0);
 }
 
 function renderTabs() {
     slideTabs.innerHTML = '';
-    slides.forEach((slide, index) => {
+    slides.forEach((_, index) => {
         const tab = document.createElement('div');
-        tab.className = `tab ${index === activeIndex ? 'active' : ''}`;
-        tab.innerText = index + 1;
-        tab.onclick = () => switchSlide(index);
+        tab.className = `slide-tab ${index === currentSlideIndex ? 'active' : ''}`;
+        tab.innerText = `Slide ${index + 1}`;
+        tab.onclick = () => loadSlide(index);
         slideTabs.appendChild(tab);
     });
 }
 
-function loadActiveSlide() {
-    const slide = slides[activeIndex];
-    htmlInput.value = slide.content;
-    updatePreview(slide.content);
+function loadSlide(index) {
+    currentSlideIndex = index;
+    htmlEditor.value = slides[index].html;
+    renderPreview();
+    renderTabs();
 }
 
-function updatePreview(content) {
+function renderPreview() {
+    const content = htmlEditor.value;
+    slides[currentSlideIndex].html = content; // Update state
+    
+    // Inject content into Iframe
     const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
     doc.open();
-    // Inject CSS สำหรับจำลองหน้ากระดาษข้างใน iframe
+    // เพิ่มสไตล์พื้นฐานให้สไลด์ และรองรับ LaTeX ผ่าน MathJax
     doc.write(`
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <style>
-            body { margin: 0; padding: 20px; font-family: sans-serif; word-wrap: break-word; }
-            img { max-width: 100%; }
+            body { margin: 0; font-family: sans-serif; background: white; min-height: 100vh; }
         </style>
         ${content}
     `);
     doc.close();
 }
 
-function switchSlide(index) {
-    // Save current content first
-    slides[activeIndex].content = htmlInput.value;
-    activeIndex = index;
-    renderTabs();
-    loadActiveSlide();
-}
+// Event Listeners
+htmlEditor.addEventListener('input', renderPreview);
 
-function addNewSlide() {
-    slides[activeIndex].content = htmlInput.value; // Save current
-    const newSlide = { id: Date.now(), content: '<h1>หน้าใหม่</h1>' };
-    slides.push(newSlide);
-    activeIndex = slides.length - 1;
-    renderTabs();
-    loadActiveSlide();
-}
+addSlideBtn.addEventListener('click', () => {
+    slides.push({ html: '<h1>New Slide</h1>' });
+    loadSlide(slides.length - 1);
+});
 
-async function exportToPDF() {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const loadingBtn = exportBtn;
-    loadingBtn.innerText = "กำลังประมวลผล...";
-    loadingBtn.disabled = true;
+// --- PDF Export Logic ---
+exportPdfBtn.addEventListener('click', async () => {
+    exportPdfBtn.innerText = 'Generating...';
+    exportPdfBtn.disabled = true;
 
-    // บันทึกหน้าปัจจุบันก่อน export
-    slides[activeIndex].content = htmlInput.value;
+    const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [1024, 768]
+    });
+
+    const exportContainer = document.getElementById('exportContainer');
 
     for (let i = 0; i < slides.length; i++) {
-        // อัปเดต iframe เพื่อเตรียมถ่ายรูป
-        updatePreview(slides[i].content);
-        
-        // รอการ Render แป๊บหนึ่ง
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 1. Create temporary element for rendering
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = '1024px';
+        tempDiv.style.height = '768px';
+        tempDiv.style.background = 'white';
+        tempDiv.innerHTML = slides[i].html;
+        exportContainer.appendChild(tempDiv);
 
-        const canvas = await html2canvas(previewFrame.contentDocument.body, {
-            scale: 2, // เพิ่มความชัด
+        // 2. Capture with html2canvas
+        const canvas = await html2canvas(tempDiv, {
+            scale: 2, // Higher quality
             useCORS: true
         });
 
         const imgData = canvas.toDataURL('image/png');
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        // 3. Add to PDF
+        if (i > 0) pdf.addPage([1024, 768], 'landscape');
+        pdf.addImage(imgData, 'PNG', 0, 0, 1024, 768);
 
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // 4. Cleanup
+        exportContainer.removeChild(tempDiv);
     }
 
-    pdf.save('presentation.pdf');
-    loadingBtn.innerText = "📄 Export PDF";
-    loadingBtn.disabled = false;
-    
-    // กลับมาหน้าปัจจุบัน
-    loadActiveSlide();
-}
-
-// --- Event Listeners ---
-
-htmlInput.addEventListener('input', (e) => {
-    updatePreview(e.target.value);
+    pdf.save('core-principle-slides.pdf');
+    exportPdfBtn.innerText = 'Export PDF';
+    exportPdfBtn.disabled = false;
 });
 
-addSlideBtn.addEventListener('click', addNewSlide);
-
-exportBtn.addEventListener('click', exportToPDF);
-
-toggleModeBtn.addEventListener('click', () => {
-    document.querySelector('.app-container').classList.toggle('preview-mode');
+// Mobile Toggle logic
+document.getElementById('toggleMobile').addEventListener('click', () => {
+    document.getElementById('editorSection').classList.toggle('hidden');
+    document.getElementById('previewSection').classList.toggle('hidden');
 });
 
-// Start the engine
 init();
