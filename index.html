@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine to PDF</title>
+    <title>Core Engine - HTML to PDF Slide</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-    <header class="toolbar">
-        <div class="logo">SlideEngine <span>v1.0</span></div>
+    <header class="app-header">
+        <div class="logo">CORE <span>ENGINE</span></div>
         <div class="actions">
-            <button id="addSlideBtn" class="btn secondary">+ เพิ่มหน้า</button>
-            <button id="exportBtn" class="btn primary">📄 Export PDF</button>
-            <button id="toggleMode" class="btn mobile-only">สลับ Preview</button>
+            <button id="addSlideBtn" class="btn btn-outline">+ Add Slide</button>
+            <button id="exportPdfBtn" class="btn btn-primary">Export PDF</button>
+            <button id="toggleMobile" class="btn btn-mobile">Editor/Preview</button>
         </div>
     </header>
 
-    <main class="app-container">
-        <nav class="slide-tabs" id="slideTabs">
-            </nav>
-
-        <div class="workspace">
-            <section class="editor-section" id="editorSection">
-                <div class="label">HTML Editor</div>
-                <textarea id="htmlInput" placeholder="เขียน HTML ที่นี่..."></textarea>
-            </section>
-
-            <section class="preview-section" id="previewSection">
-                <div class="label">Live Preview (A4)</div>
-                <div class="preview-wrapper">
-                    <iframe id="previewFrame"></iframe>
+    <main class="main-container">
+        <aside class="sidebar">
+            <div class="section-title">SLIDES</div>
+            <div id="slideTabs" class="slide-tabs">
                 </div>
-            </section>
-        </div>
+        </aside>
+
+        <section class="editor-section" id="editorSection">
+            <div class="section-label">HTML SOURCE</div>
+            <textarea id="htmlEditor" spellcheck="false" placeholder="Write your HTML here..."></textarea>
+        </section>
+
+        <section class="preview-section" id="previewSection">
+            <div class="section-label">LIVE PREVIEW</div>
+            <div class="iframe-wrapper">
+                <iframe id="previewFrame"></iframe>
+            </div>
+        </section>
     </main>
+
+    <div id="exportContainer" style="position: absolute; left: -9999px; top: 0;"></div>
 
     <script src="script.js"></script>
 </body>
