@@ -1,72 +1,109 @@
+// --- 1. State Management ---
+// เริ่มต้นด้วยสไลด์ว่าง 1 หน้า
 let slides = [{
     id: Date.now(),
-    content: `<div class="w-[1280px] h-[720px] mx-auto flex flex-col justify-center items-center bg-[#0f172a] p-24 text-center relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-2 bg-[#38bdf8]"></div>
-    <h1 class="text-7xl font-bold text-white mb-4">ตรรกศาสตร์ (Logic)</h1>
-    <p class="text-2xl text-gray-400">การศึกษาความจริงอย่างเป็นระบบ</p>
-</div>`
+    content: `` 
 }];
 
 let activeSlideId = slides[0].id;
 
-// Elements
+// --- 2. DOM Elements ---
 const editor = document.getElementById('html-editor');
 const previewFrame = document.getElementById('preview-frame');
 const wrapper = document.getElementById('iframe-wrapper');
 const previewPane = document.getElementById('preview-pane');
+const tabsContainer = document.getElementById('tabs-container');
 
-// --- Core Function: อัปเดต Preview ---
+// --- 3. Core Functions ---
+
+/**
+ * ฟังก์ชันสำหรับปรับขนาดสไลด์ (1280x720) ให้พอดีกับหน้าจอที่ดูอยู่
+ * ใช้ CSS Transform Scale เพื่อไม่ให้สไลด์ตกขอบใน iPad/Mobile
+ */
+function fitSlide() {
+    const padding = 40; // เว้นระยะขอบจอเล็กน้อย
+    const availableWidth = previewPane.clientWidth - padding;
+    const availableHeight = previewPane.clientHeight - padding;
+    
+    // คำนวณอัตราส่วน (Base คือ 1280x720)
+    const scale = Math.min(availableWidth / 1280, availableHeight / 720);
+    
+    // ปรับ Scale (ไม่ให้เกิน 1 หรือ 100% ถ้าจอใหญ่กว่าสไลด์)
+    const finalScale = scale > 1 ? 1 : scale;
+    
+    wrapper.style.transform = `scale(${finalScale})`;
+}
+
+/**
+ * ฟังก์ชันอัปเดต Preview ใน iframe แบบ Real-time
+ * มีการ Inject Tailwind CSS และการตั้งค่า Viewport พื้นฐาน
+ */
 function updatePreview() {
     const activeSlide = slides.find(s => s.id === activeSlideId);
     activeSlide.content = editor.value;
 
     const fullDoc = `
+        <!DOCTYPE html>
         <html>
             <head>
+                <meta charset="UTF-8">
                 <meta name="viewport" content="width=1280">
                 <script src="https://cdn.tailwindcss.com"></script>
-                <style>body { margin: 0; padding: 0; overflow: hidden; background: white; }</style>
+                <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+                <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                <style>
+                    body { 
+                        margin: 0; 
+                        padding: 0; 
+                        overflow: hidden; 
+                        background-color: white; 
+                        width: 1280px; 
+                        height: 720px;
+                    }
+                </style>
             </head>
-            <body>${activeSlide.content}</body>
+            <body>
+                ${activeSlide.content}
+            </body>
         </html>
     `;
+    
+    // ใช้ srcdoc เพื่อ render HTML จาก string โดยตรง
     previewFrame.srcdoc = fullDoc;
-    setTimeout(fitSlide, 50); // ปรับ Scale หลังจากเนื้อหาโหลด
+    
+    // สั่งให้คำนวณการจัดวางใหม่หลังเนื้อหาเปลี่ยน
+    setTimeout(fitSlide, 50);
 }
 
-// --- Core Function: ปรับขนาดสไลด์ให้พอดีหน้าจอ (Auto Scale) ---
-function fitSlide() {
-    const padding = 40;
-    const availableWidth = previewPane.clientWidth - padding;
-    const availableHeight = previewPane.clientHeight - padding;
-    
-    // อ้างอิงจาก 1280x720
-    const scale = Math.min(availableWidth / 1280, availableHeight / 720);
-    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกินขนาดจริง
-    
-    wrapper.style.transform = `scale(${finalScale})`;
-}
-
-// --- UI Management ---
+/**
+ * ฟังก์ชันจัดการ Tabs สไลด์ด้านบน
+ */
 function renderTabs() {
-    const container = document.getElementById('tabs-container');
-    container.innerHTML = '';
+    tabsContainer.innerHTML = '';
     slides.forEach((s, i) => {
         const tab = document.createElement('div');
         tab.className = `tab ${s.id === activeSlideId ? 'active' : ''}`;
         tab.innerText = `Slide ${i + 1}`;
+        
         tab.onclick = () => {
             activeSlideId = s.id;
             editor.value = s.content;
             renderTabs();
             updatePreview();
         };
-        container.appendChild(tab);
+        
+        tabsContainer.appendChild(tab);
     });
 }
 
+// --- 4. Event Listeners ---
+
+// พิมพ์โค้ดแล้ว Preview อัปเดตทันที
+editor.addEventListener('input', updatePreview);
+
+// เพิ่มสไลด์ใหม่ (หน้าว่าง)
 document.getElementById('btn-add-slide').onclick = () => {
-    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-white flex items-center justify-center text-4xl">สไลด์ใหม่</div>` };
+    const newSlide = { id: Date.now(), content: `` };
     slides.push(newSlide);
     activeSlideId = newSlide.id;
     editor.value = newSlide.content;
@@ -74,10 +111,23 @@ document.getElementById('btn-add-slide').onclick = () => {
     updatePreview();
 };
 
-// --- PDF Export ---
+// สลับโหมด Editor / Preview บน Mobile/iPad
+document.getElementById('btn-toggle-view').onclick = () => {
+    const workspace = document.getElementById('workspace');
+    workspace.classList.toggle('view-preview');
+    workspace.classList.toggle('view-editor');
+    // หลังจากสลับหน้าจอ ให้คำนวณ Scale ใหม่เพื่อให้สไลด์พอดีจอ
+    setTimeout(fitSlide, 150);
+};
+
+// ปรับ Scale อัตโนมัติเมื่อมีการย่อ/ขยายหน้าต่าง Browser
+window.addEventListener('resize', fitSlide);
+
+// --- 5. Export PDF System ---
+
 document.getElementById('btn-export-pdf').onclick = async () => {
     const overlay = document.getElementById('loading-overlay');
-    overlay.classList.remove('hidden');
+    overlay.classList.remove('hidden'); // แสดงหน้าจอ Loading
     
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('l', 'px', [1280, 720]);
@@ -85,33 +135,51 @@ document.getElementById('btn-export-pdf').onclick = async () => {
 
     for (let i = 0; i < slides.length; i++) {
         const slide = slides[i];
-        exportFrame.srcdoc = `<html><head><script src="https://cdn.tailwindcss.com"></script></head><body>${slide.content}</body></html>`;
         
-        await new Promise(r => setTimeout(r, 1000)); // รอ Tailwind Render
+        // เตรียม Content สำหรับ Export
+        exportFrame.srcdoc = `
+            <html>
+                <head>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                    <style>body { margin:0; padding:0; width:1280px; height:720px; overflow:hidden; }</style>
+                </head>
+                <body>${slide.content}</body>
+            </html>
+        `;
+        
+        // รอให้ Tailwind/Images โหลด (1 วินาที)
+        await new Promise(r => setTimeout(r, 1000));
 
+        // แปลง HTML เป็น Canvas
         const canvas = await html2canvas(exportFrame.contentDocument.body, {
-            width: 1280, height: 720, scale: 1
+            width: 1280,
+            height: 720,
+            scale: 1,
+            useCORS: true
         });
         
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        // ถ้าไม่ใช่หน้าแรก ให้เพิ่มหน้าใหม่ใน PDF
         if (i > 0) pdf.addPage();
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 1280, 720);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 1280, 720);
     }
 
-    pdf.save('my-slides.pdf');
-    overlay.classList.add('hidden');
+    // ดาวน์โหลดไฟล์
+    pdf.save('my-presentation.pdf');
+    overlay.classList.add('hidden'); // ซ่อนหน้าจอ Loading
 };
 
-// --- Init & Listeners ---
-window.addEventListener('resize', fitSlide);
-editor.oninput = updatePreview;
-document.getElementById('btn-toggle-view').onclick = () => {
-    document.getElementById('workspace').classList.toggle('view-preview');
-    document.getElementById('workspace').classList.toggle('view-editor');
-    setTimeout(fitSlide, 100);
-};
+// --- 6. Initial Start ---
+// เริ่มต้นระบบ
+function init() {
+    // กำหนดค่าเริ่มต้นใน Editor
+    editor.value = slides[0].content;
+    // แสดงโหมด Editor เป็นค่าเริ่มต้น
+    document.getElementById('workspace').classList.add('view-editor');
+    
+    renderTabs();
+    updatePreview();
+}
 
-// Setup เริ่มต้น
-document.getElementById('workspace').classList.add('view-editor');
-editor.value = slides[0].content;
-renderTabs();
-updatePreview();
+init();
