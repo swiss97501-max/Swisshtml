@@ -2,30 +2,34 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HTML Slide Engine Pro</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <header>
-        <div class="logo">Slide Engine</div>
-        <div class="actions">
-            <button id="btn-add-slide" class="btn primary">เพิ่มสไลด์</button>
+    <header class="main-header">
+        <div class="header-left">
+            <span class="logo-text">Slide Engine</span>
+        </div>
+        <div class="header-right">
+            <button id="btn-add-slide" class="btn primary">เพิ่มหน้า</button>
             <button id="btn-export-pdf" class="btn danger">Export PDF</button>
         </div>
     </header>
 
-    <nav class="tabs-container" id="tabs-container"></nav>
+    <div class="tabs-outer">
+        <nav class="tabs-container" id="tabs-container"></nav>
+    </div>
 
     <div class="mobile-toolbar">
-        <button id="btn-toggle-view" class="btn outline">สลับ Editor / Preview</button>
+        <button id="btn-toggle-view" class="btn outline-blue">สลับ Editor / Preview</button>
     </div>
 
     <main class="workspace" id="workspace">
         <section class="pane editor-pane">
-            <textarea id="html-editor" spellcheck="false" placeholder="เขียน HTML/Tailwind ที่นี่..."></textarea>
+            <textarea id="html-editor" spellcheck="false" placeholder="เริ่มเขียนที่นี่..."></textarea>
         </section>
 
         <section class="pane preview-pane" id="preview-pane">
@@ -40,7 +44,7 @@
     </div>
 
     <div id="loading-overlay" class="hidden">
-        <div class="loader">กำลังสร้าง PDF...</div>
+        <div class="loader">กำลังประมวลผล PDF...</div>
     </div>
 
     <script src="script.js"></script>
