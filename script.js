@@ -1,104 +1,122 @@
-let slides = [{ id: 1, content: '<h1>Slide 1</h1>' }];
-let activeId = 1;
+const { jsPDF } = window.jspdf;
 
-const editor = document.getElementById('html-editor');
-const frame = document.getElementById('preview-frame');
-const wrapper = document.getElementById('slide-wrapper');
+// --- State Management ---
+let slides = [
+    { id: Date.now(), content: `<div style="text-align:center; padding:50px;">
+    <h1>หน้าแรก (Slide 1)</h1>
+    <p>เขียน HTML ได้ที่ฝั่งซ้าย</p>
+    <div style="color: blue;">รองรับ CSS Inline หรือ Style Tag</div>
+</div>` }
+];
+let activeSlideIndex = 0;
 
-// --- 1. Real-time Rendering ---
+// Elements
+const slideListEl = document.getElementById('slide-list');
+const htmlEditor = document.getElementById('html-editor');
+const previewFrame = document.getElementById('preview-frame');
+const currentTitleEl = document.getElementById('current-slide-title');
+
+// --- Functions ---
+
+function init() {
+    renderSlideList();
+    loadSlide(0);
+}
+
+function renderSlideList() {
+    slideListEl.innerHTML = '';
+    slides.forEach((slide, index) => {
+        const li = document.createElement('li');
+        li.textContent = `Slide ${index + 1}`;
+        li.className = index === activeSlideIndex ? 'active' : '';
+        li.onclick = () => loadSlide(index);
+        slideListEl.appendChild(li);
+    });
+}
+
+function loadSlide(index) {
+    // Save current content before switching
+    slides[activeSlideIndex].content = htmlEditor.value;
+    
+    activeSlideIndex = index;
+    htmlEditor.value = slides[index].content;
+    currentTitleEl.textContent = `Slide ${index + 1}`;
+    
+    renderSlideList();
+    updatePreview();
+}
+
 function updatePreview() {
-    const slide = slides.find(s => s.id === activeId);
-    slide.content = editor.value;
-
-    const fullDoc = `
-        <html>
-            <head>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <style>
-                    body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; }
-                </style>
-            </head>
-            <body>${slide.content}</body>
-        </html>
+    const content = htmlEditor.value;
+    const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+    
+    // Inject LaTeX support (MathJax) into iframe
+    const mathJaxScript = `
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     `;
-    frame.srcdoc = fullDoc;
-    autoScale();
+
+    iframeDoc.open();
+    iframeDoc.write(content + mathJaxScript);
+    iframeDoc.close();
 }
 
-// --- 2. Auto Scaling Logic ---
-function autoScale() {
-    const container = document.getElementById('preview-area');
-    const winW = container.clientWidth - 60;
-    const winH = container.clientHeight - 60;
+// Add Slide
+document.getElementById('add-slide-btn').onclick = () => {
+    slides.push({ id: Date.now(), content: '<h1>New Slide</h1>' });
+    loadSlide(slides.length - 1);
+};
+
+// Sync Editor with Preview
+htmlEditor.oninput = () => {
+    slides[activeSlideIndex].content = htmlEditor.value;
+    updatePreview();
+};
+
+// Toggle View for Mobile
+document.getElementById('toggle-view').onclick = () => {
+    const editor = document.querySelector('.editor-section');
+    const preview = document.querySelector('.preview-section');
+    editor.classList.toggle('hide');
+    preview.classList.toggle('hide');
+};
+
+// --- Export PDF Logic ---
+async function exportPDF() {
+    const pdf = new jsPDF('landscape', 'pt', 'a4');
+    const pdfContainer = document.getElementById('pdf-render-container');
+    const btn = document.getElementById('export-pdf-btn');
     
-    const scale = Math.min(winW / 1280, winH / 720);
-    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกินขนาดจริง
-    
-    wrapper.style.transform = `scale(${finalScale})`;
-    document.getElementById('zoom-text').innerText = Math.round(finalScale * 100) + "%";
-}
-
-window.addEventListener('resize', autoScale);
-editor.addEventListener('input', updatePreview);
-
-// --- 3. Professional PDF Export ---
-document.getElementById('btn-export-pdf').addEventListener('click', async () => {
-    const loader = document.getElementById('loader');
-    loader.classList.remove('hidden');
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('l', 'px', [1280, 720]);
+    btn.textContent = "Processing...";
+    btn.disabled = true;
 
     for (let i = 0; i < slides.length; i++) {
-        // สร้าง Temporary Container เพื่อ Render สไลด์ขนาดเต็มสำหรับแคปภาพ
+        // 1. Create a temporary div for rendering
         const tempDiv = document.createElement('div');
-        tempDiv.style.width = '1280px';
-        tempDiv.style.height = '720px';
-        tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '-2000px';
+        tempDiv.style.width = '842pt'; // A4 Landscape width
+        tempDiv.style.height = '595pt'; // A4 Landscape height
+        tempDiv.style.background = 'white';
         tempDiv.innerHTML = slides[i].content;
-        document.body.appendChild(tempDiv);
+        pdfContainer.appendChild(tempDiv);
 
-        // รอ Tailwind/Images render แป๊บหนึ่ง
-        await new Promise(r => setTimeout(r, 400));
+        // 2. Capture with html2canvas
+        const canvas = await html2canvas(tempDiv, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
 
-        const canvas = await html2canvas(tempDiv, {
-            width: 1280, height: 720, scale: 2, // Scale 2 เพื่อความชัด
-            useCORS: true
-        });
+        // 3. Add to PDF
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, 0, 842, 595);
 
-        if (i > 0) pdf.addPage([1280, 720], 'l');
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 1280, 720);
-        document.body.removeChild(tempDiv);
+        // 4. Clean up
+        pdfContainer.removeChild(tempDiv);
     }
 
-    pdf.save('presentation.pdf');
-    loader.classList.add('hidden');
-});
-
-// Init
-editor.value = slides[0].content;
-updatePreview();
-renderTabs();
-
-function renderTabs() {
-    const container = document.getElementById('tabs-container');
-    container.innerHTML = slides.map(s => `
-        <div class="tab ${s.id === activeId ? 'active' : ''}" onclick="switchSlide(${s.id})">
-            Slide ${slides.indexOf(s) + 1}
-        </div>
-    `).join('');
+    pdf.save('my-slides.pdf');
+    btn.textContent = "Export All PDF";
+    btn.disabled = false;
 }
 
-function switchSlide(id) {
-    activeId = id;
-    editor.value = slides.find(s => s.id === id).content;
-    updatePreview();
-    renderTabs();
-}
+document.getElementById('export-pdf-btn').onclick = exportPDF;
 
-document.getElementById('btn-add-slide').onclick = () => {
-    const newId = Date.now();
-    slides.push({ id: newId, content: '<div class="p-20"><h1>New Slide</h1></div>' });
-    switchSlide(newId);
-};
+// Run
+init();
