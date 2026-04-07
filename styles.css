@@ -1,89 +1,71 @@
 :root {
     --bg-dark: #0f172a;
-    --header-bg: #020617;
-    --editor-bg: #0a0a0a;
+    --editor-bg: #111111;
     --accent: #38bdf8;
-    --green: #4ade80;
+    --green-text: #4ade80;
     --danger: #ef4444;
 }
 
-* { box-sizing: border-box; }
-body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: var(--bg-dark); font-family: sans-serif; color: white; }
+body, html { margin: 0; padding: 0; height: 100vh; font-family: sans-serif; background: var(--bg-dark); color: white; display: flex; flex-direction: column; overflow: hidden; }
 
-/* Header Fix */
-.main-header {
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-    background: var(--header-bg);
-    border-bottom: 1px solid #1e293b;
-    z-index: 100;
+/* แก้ไข Header ให้รองรับมือถือ */
+header {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    padding: 10px 15px; background: #020617; border-bottom: 1px solid #1e293b; gap: 10px;
 }
 
-.logo-text { font-weight: bold; color: var(--accent); }
-.header-right { display: flex; gap: 8px; }
+.logo { font-weight: bold; font-size: 1.1rem; color: var(--accent); }
+.actions { display: flex; gap: 8px; }
 
-/* Buttons */
-.btn { border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
 .primary { background: var(--accent); color: #000; }
 .danger { background: var(--danger); color: white; }
-.outline-blue { border: 1px solid var(--accent); background: transparent; color: var(--accent); width: 100%; }
+.outline { border: 1px solid var(--accent); background: transparent; color: var(--accent); width: 100%; }
 
-/* Tabs System */
-.tabs-outer { background: #020617; border-bottom: 1px solid #1e293b; overflow-x: auto; white-space: nowrap; }
-.tabs-container { display: flex; padding: 0 5px; }
+/* Tab System */
+.tabs-outer { background: #020617; border-bottom: 1px solid #1e293b; overflow-x: auto; }
+.tabs-container { display: flex; min-width: max-content; }
 
 .tab {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    background: #1e293b;
-    margin: 5px 2px 0 2px;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer;
-    gap: 10px;
-    transition: 0.2s;
-    border: 1px solid transparent;
+    display: flex; align-items: center; padding: 10px 15px; cursor: pointer; 
+    background: #1e293b; border-right: 1px solid #020617; min-width: 110px;
+    font-size: 13px; color: #94a3b8; transition: 0.2s;
 }
+.tab.active { background: var(--accent); color: #000; font-weight: bold; }
 
-.tab.active { background: #0f172a; border: 1px solid #334155; border-bottom: 2px solid var(--accent); color: var(--accent); }
-
-.tab-label { font-size: 13px; }
-.tab-actions { display: flex; gap: 4px; }
-.btn-mini { 
-    background: rgba(255,255,255,0.1); border: none; color: white; 
-    border-radius: 3px; width: 20px; height: 20px; 
-    display: flex; align-items: center; justify-content: center; font-size: 10px; 
+/* ปุ่มลบสไลด์ใน Tab */
+.btn-delete-tab {
+    margin-left: 10px; width: 18px; height: 18px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,0.1); color: inherit;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; line-height: 0; cursor: pointer;
 }
-.btn-mini:hover { background: rgba(255,255,255,0.3); }
-.btn-del:hover { background: var(--danger); }
+.btn-delete-tab:hover { background: var(--danger); color: white; }
 
-/* Workspace */
-.workspace { display: flex; height: calc(100vh - 110px); }
+.workspace { display: flex; flex: 1; overflow: hidden; }
 .pane { flex: 1; display: flex; flex-direction: column; position: relative; }
 
 #html-editor {
-    flex: 1; background: var(--editor-bg); color: var(--green);
+    flex: 1; background: var(--editor-bg); color: var(--green-text);
     border: none; padding: 20px; font-family: 'Fira Code', monospace;
-    font-size: 15px; outline: none; resize: none;
+    font-size: 15px; outline: none; resize: none; line-height: 1.5;
 }
 
-.preview-pane { background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.preview-pane { background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 20px; }
 .iframe-wrapper { width: 1280px; height: 720px; background: white; transform-origin: center center; flex-shrink: 0; }
 #preview-frame, #export-frame { width: 1280px; height: 720px; border: none; }
 
-.mobile-toolbar { display: none; padding: 8px; background: var(--header-bg); }
+.mobile-toolbar { display: none; padding: 10px; background: #020617; border-bottom: 1px solid #1e293b; }
 
-/* Responsive */
+.hidden { display: none !important; }
+.hidden-export { position: absolute; left: -5000px; }
+
+#loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
+
 @media (max-width: 768px) {
+    header { justify-content: center; }
+    .logo { width: 100%; text-align: center; }
     .mobile-toolbar { display: block; }
     .workspace.view-preview .editor-pane { display: none; }
     .workspace.view-editor .preview-pane { display: none; }
-    .workspace { height: calc(100vh - 150px); }
 }
-
-.hidden { display: none !important; }
-.hidden-export { position: absolute; left: -9999px; }
-#loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center; }
