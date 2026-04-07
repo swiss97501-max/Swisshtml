@@ -3,43 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Slide Engine Pro</title>
+    <title>HTML Slide Engine</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="brand">SLIDE<span>ENGINE</span></div>
-        <div class="tab-scroller" id="tabs-container"></div>
-        <div class="toolbar">
-            <button id="btn-add-slide" class="btn-icon" title="Add Slide">＋</button>
-            <button id="btn-export-pdf" class="btn-primary">Export PDF</button>
-        </div>
-    </nav>
 
-    <main class="app-shell">
-        <section class="editor-section">
-            <textarea id="html-editor" spellcheck="false"></textarea>
-        </section>
-        
-        <section class="preview-section" id="preview-area">
-            <div class="canvas-monitor">
-                <div class="slide-wrapper" id="slide-wrapper">
-                    <iframe id="preview-frame"></iframe>
-                </div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Slides</h3>
+                <button id="add-slide-btn" class="btn-primary">+</button>
             </div>
-            <div class="zoom-indicator" id="zoom-text">100%</div>
-        </section>
-    </main>
+            <ul id="slide-list"></ul>
+            <div class="sidebar-footer">
+                <button id="export-pdf-btn" class="btn-success">Export All PDF</button>
+            </div>
+        </aside>
 
-    <div id="loader" class="overlay hidden">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p>กำลังประมวลผล PDF...</p>
-        </div>
+        <main class="main-content">
+            <header class="toolbar">
+                <button id="toggle-view" class="btn-secondary">Switch Editor/Preview</button>
+                <span id="current-slide-title">Slide 1</span>
+            </header>
+
+            <div class="workspace">
+                <section class="editor-section">
+                    <textarea id="html-editor" placeholder="เขียน HTML/CSS/JS ที่นี่..."></textarea>
+                </section>
+
+                <section class="preview-section">
+                    <iframe id="preview-frame"></iframe>
+                </section>
+            </div>
+        </main>
     </div>
+
+    <div id="pdf-render-container" style="position: absolute; left: -9999px; top: 0;"></div>
 
     <script src="script.js"></script>
 </body>
