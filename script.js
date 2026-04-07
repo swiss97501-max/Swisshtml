@@ -1,155 +1,128 @@
-// 1. State Management
-let slides = [
-    {
-        id: Date.now(),
-        content: `
-<div class="w-[1280px] h-[720px] mx-auto flex flex-col justify-center items-center bg-[#0f172a] p-24 text-center relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-2 bg-[#38bdf8]"></div>
-    <div class="relative z-10 mb-10">
-        <div class="w-24 h-1 bg-[#38bdf8] mx-auto mb-8"></div>
-        <h1 class="text-6xl font-bold text-white tracking-tight">ตรรกศาสตร์ (Logic)</h1>
-    </div>
-    <p class="relative z-10 text-xl text-gray-400 font-light leading-relaxed">
-        การศึกษาการให้เหตุผลอย่างเป็นระบบ<br/>
-        เพื่อแยกแยะ "ความจริง" ออกจาก "ความคลาดเคลื่อน"
-    </p>
+// --- Configuration & State ---
+const BASE_WIDTH = 1280;
+const BASE_HEIGHT = 720;
+
+let slides = [{
+    id: Date.now(),
+    html: `<div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white p-20">
+    <div class="h-1 w-20 bg-sky-400 mb-8"></div>
+    <h1 class="text-7xl font-bold mb-4">HTML SLIDE</h1>
+    <p class="text-2xl text-slate-400">Professional Preview System</p>
 </div>`
-    }
-];
+}];
 
-let activeSlideId = slides[0].id;
-const editor = document.getElementById('html-editor');
-const previewFrame = document.getElementById('preview-frame');
-const wrapper = document.getElementById('iframe-wrapper');
-const previewPane = document.getElementById('preview-pane');
+let activeId = slides[0].id;
+const editor = document.getElementById('code-editor');
+const preview = document.getElementById('preview-iframe');
+const wrapper = document.getElementById('canvas-wrapper');
 
-// 2. ฟังก์ชัน Fit Slide (หัวใจของการแก้ปัญหาจอ iPad/Mobile)
-function fitSlide() {
-    if (!wrapper || !previewPane) return;
-    
-    const padding = 20; 
-    const availableWidth = previewPane.clientWidth - padding;
-    const availableHeight = previewPane.clientHeight - padding;
-    
-    const baseWidth = 1280;
-    const baseHeight = 720;
-    
-    // คำนวณ Scale ที่ทำให้สัดส่วนไม่เสีย
-    const scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
-    
-    // ย่อ Wrapper ลงตามอัตราส่วนหน้าจอ
-    wrapper.style.transform = `scale(${scale > 1 ? 1 : scale})`;
-}
+// --- Core Functions ---
 
-// 3. Render Logic
-function updatePreview() {
-    const activeSlide = slides.find(s => s.id === activeSlideId);
-    activeSlide.content = editor.value;
-
-    const docContent = `
+function updateIframe(targetIframe, content) {
+    const fullDoc = `
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=1280">
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-                body { margin: 0; padding: 0; overflow: hidden; background: #000; }
-            </style>
-        </head>
-        <body>${activeSlide.content}</body>
+            <head>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;700&display=swap" rel="stylesheet">
+                <style>
+                    body { margin: 0; padding: 0; overflow: hidden; font-family: 'Sarabun', sans-serif; width: ${BASE_WIDTH}px; height: ${BASE_HEIGHT}px; }
+                </style>
+            </head>
+            <body>${content}</body>
         </html>
     `;
-    previewFrame.srcdoc = docContent;
+    targetIframe.srcdoc = fullDoc;
+}
+
+function fitToScreen() {
+    const container = document.getElementById('preview-container');
+    const availableWidth = container.clientWidth - 60;
+    const availableHeight = container.clientHeight - 60;
+
+    const scale = Math.min(availableWidth / BASE_WIDTH, availableHeight / BASE_HEIGHT);
+    const finalScale = scale > 1 ? 1 : scale; // ไม่ขยายเกิน 100%
+
+    wrapper.style.transform = `scale(${finalScale})`;
 }
 
 function renderTabs() {
-    const container = document.getElementById('tabs-container');
-    container.innerHTML = '';
-    slides.forEach((slide, index) => {
-        const tab = document.createElement('div');
-        tab.className = `tab ${slide.id === activeSlideId ? 'active' : ''}`;
-        tab.innerHTML = `
-            <span onclick="switchSlide(${slide.id})">Slide ${index + 1}</span>
-            ${slides.length > 1 ? `<button class="tab-delete" onclick="deleteSlide(${slide.id})">×</button>` : ''}
-        `;
-        container.appendChild(tab);
+    const tabBar = document.getElementById('tab-bar');
+    tabBar.innerHTML = '';
+    slides.forEach((s, i) => {
+        const t = document.createElement('div');
+        t.className = `tab ${s.id === activeId ? 'active' : ''}`;
+        t.innerHTML = `Slide ${i + 1}`;
+        t.onclick = () => {
+            activeId = s.id;
+            editor.value = s.html;
+            renderTabs();
+            updateIframe(preview, s.html);
+        };
+        tabBar.appendChild(t);
     });
 }
 
-function switchSlide(id) {
-    activeSlideId = id;
-    const activeSlide = slides.find(s => s.id === id);
-    editor.value = activeSlide.content;
-    updatePreview();
-    renderTabs();
-    setTimeout(fitSlide, 50);
-}
+// --- Event Listeners ---
 
-function addSlide() {
-    const newSlide = {
-        id: Date.now(),
-        content: `<div class="w-[1280px] h-[720px] flex items-center justify-center bg-white text-black"><h1>หน้าใหม่</h1></div>`
-    };
+editor.addEventListener('input', () => {
+    const slide = slides.find(s => s.id === activeId);
+    slide.html = editor.value;
+    updateIframe(preview, slide.html);
+});
+
+document.getElementById('btn-add').onclick = () => {
+    const newSlide = { id: Date.now(), html: '<div class="bg-white h-full p-20"><h1>New Slide</h1></div>' };
     slides.push(newSlide);
-    switchSlide(newSlide.id);
-}
+    activeId = newSlide.id;
+    editor.value = newSlide.html;
+    renderTabs();
+    updateIframe(preview, newSlide.html);
+};
 
-function deleteSlide(id) {
-    slides = slides.filter(s => s.id !== id);
-    if (activeSlideId === id) activeSlideId = slides[0].id;
-    switchSlide(activeSlideId);
-}
+// Export Logic
+document.getElementById('btn-export').onclick = async () => {
+    const loader = document.getElementById('loader');
+    const workerFrame = document.getElementById('export-iframe');
+    loader.classList.remove('hidden');
 
-// 4. Export PDF
-document.getElementById('btn-export-pdf').addEventListener('click', async () => {
-    const overlay = document.getElementById('loading-overlay');
-    overlay.classList.remove('hidden');
-    
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('landscape', 'px', [1280, 720]);
-    const exportFrame = document.getElementById('export-frame');
+    const pdf = new jsPDF('landscape', 'px', [BASE_WIDTH, BASE_HEIGHT]);
 
     for (let i = 0; i < slides.length; i++) {
-        const content = `
-            <html>
-            <head>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <style>body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; }</style>
-            </head>
-            <body>${slides[i].content}</body>
-            </html>
-        `;
-        exportFrame.srcdoc = content;
+        updateIframe(workerFrame, slides[i].html);
         
-        await new Promise(res => {
-            exportFrame.onload = () => setTimeout(res, 800); // รอ Tailwind Render
+        await new Promise(r => {
+            workerFrame.onload = () => setTimeout(r, 800); // รอ Tailwind/Fonts render
         });
 
-        const canvas = await html2canvas(exportFrame.contentDocument.body, {
-            width: 1280, height: 720, scale: 1
+        const canvas = await html2canvas(workerFrame.contentDocument.body, {
+            width: BASE_WIDTH,
+            height: BASE_HEIGHT,
+            scale: 2 // เพิ่มความคมชัดเป็น 2 เท่า
         });
 
+        const img = canvas.toDataURL('image/jpeg', 0.9);
         if (i > 0) pdf.addPage();
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 1280, 720);
+        pdf.addImage(img, 'JPEG', 0, 0, BASE_WIDTH, BASE_HEIGHT);
     }
 
-    pdf.save('my-presentation.pdf');
-    overlay.classList.add('hidden');
-});
+    pdf.save('my-slides.pdf');
+    loader.classList.add('hidden');
+};
 
-// 5. Events
-editor.addEventListener('input', updatePreview);
-document.getElementById('btn-add-slide').addEventListener('click', addSlide);
-window.addEventListener('resize', fitSlide);
-
-document.getElementById('btn-toggle-view').addEventListener('click', () => {
-    const ws = document.getElementById('workspace');
-    ws.classList.toggle('view-preview');
-    ws.classList.toggle('view-editor');
-    setTimeout(fitSlide, 100);
-});
+// Mobile Navigation
+const layout = document.getElementById('main-layout');
+layout.classList.add('show-editor');
+document.getElementById('toggle-view').onclick = () => {
+    layout.classList.toggle('show-editor');
+    layout.classList.toggle('show-preview');
+    setTimeout(fitToScreen, 50);
+};
 
 // Init
-document.getElementById('workspace').classList.add('view-editor');
-switchSlide(activeSlideId);
+window.addEventListener('resize', fitToScreen);
+editor.value = slides[0].html;
+renderTabs();
+updateIframe(preview, slides[0].html);
+setTimeout(fitToScreen, 100);
