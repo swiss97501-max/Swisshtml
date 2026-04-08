@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slide Engine - Ultimate Fix</title>
+    <title>Slide Engine Pro</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="app">
@@ -13,7 +16,7 @@
             <div class="brand">SLIDE</div>
             <nav>
                 <button id="btn-add" class="btn-icon" title="เพิ่มสไลด์">+</button>
-                <button id="btn-export" class="btn-icon danger" title="Export PDF">↓</button>
+                <button id="btn-export" class="btn-icon danger" title="ดาวน์โหลด PDF">↓</button>
             </nav>
             <div id="tabs-container" class="tabs-vertical"></div>
         </aside>
@@ -33,6 +36,12 @@
             <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
         </section>
     </div>
+
+    <div id="loading-overlay" style="display: none;">
+        <div class="loader"></div>
+        <p style="margin-top: 15px; font-weight: bold; color: white;">กำลังสร้างและดาวน์โหลด PDF...<br><span style="font-size: 12px; font-weight: normal; color: #aaa;">(กรุณารอสักครู่ ห้ามปิดหน้าจอ)</span></p>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
