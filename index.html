@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slide Engine Pro</title>
+    <title>Slide Engine - Ultimate Fix</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    </head>
+</head>
 <body>
     <div class="app">
         <aside class="sidebar">
-            <div class="brand">SLIDE<span>PRO</span></div>
+            <div class="brand">SLIDE</div>
             <nav>
                 <button id="btn-add" class="btn-icon" title="เพิ่มสไลด์">+</button>
                 <button id="btn-export" class="btn-icon danger" title="Export PDF">↓</button>
@@ -18,17 +18,19 @@
             <div id="tabs-container" class="tabs-vertical"></div>
         </aside>
 
-        <main class="editor-container">
-            <div class="pane-header">HTML EDITOR</div>
-            <textarea id="html-editor" spellcheck="false" placeholder="เขียนโค้ดที่นี่..."></textarea>
-        </aside>
+        <main class="editor-container" id="editor-area">
+            <div class="pane-header">HTML / TAILWIND EDITOR</div>
+            <textarea id="html-editor" spellcheck="false"></textarea>
+        </main>
 
         <section class="preview-container" id="preview-area">
-            <div class="pane-header">PREVIEW (16:9)</div>
-            <div id="canvas-wrapper" class="canvas-wrapper">
-                <iframe id="preview-frame"></iframe>
+            <div class="pane-header">LIVE PREVIEW</div>
+            <div class="scale-anchor">
+                <div id="canvas-wrapper" class="canvas-wrapper">
+                    <iframe id="preview-frame"></iframe>
+                </div>
             </div>
-            <button id="btn-swap" class="mobile-only-btn">Swap Editor/Preview</button>
+            <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
         </section>
     </div>
     <script src="script.js"></script>
