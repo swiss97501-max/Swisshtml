@@ -1,25 +1,23 @@
-let slides = [{ id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-900 flex flex-col items-center justify-center text-white">
-    <h1 class="text-6xl font-bold mb-4">Slide Engine</h1>
-    <p class="text-xl text-slate-400">Export PDF แบบพื้นหลังไม่ขาว</p>
-</div>` }];
-let activeSlideId = slides[0].id;
+let slides = [{ 
+    id: Date.now(), 
+    content: `<div class="w-[1280px] h-[720px] flex flex-col justify-center items-center bg-[#0f172a] p-24 text-center relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-2 bg-[#38bdf8]"></div>
+    <div class="absolute inset-0 flex items-center justify-center opacity-5 text-[200px] font-bold text-white">∀ ∃ ∧ ∨</div>
+    <div class="relative z-10 mb-10">
+      <div class="w-24 h-1 bg-[#38bdf8] mx-auto mb-8"></div>
+      <h1 class="text-6xl font-bold text-white leading-tight tracking-tight" style="font-family: 'Playfair Display', serif;">ตรรกศาสตร์ (Logic)</h1>
+    </div>
+    <p class="relative z-10 text-xl text-gray-400 font-light max-w-4xl" style="font-family: 'Sarabun', sans-serif;">การศึกษากฎของการให้เหตุผลอย่างเป็นระบบ<br/>เพื่อแยกแยะ “ความจริง” ออกจาก “ความคลาดเคลื่อน”</p>
+</div>` 
+}];
 
+let activeSlideId = slides[0].id;
 const editor = document.getElementById('html-editor');
 const previewFrame = document.getElementById('preview-frame');
 const wrapper = document.getElementById('canvas-wrapper');
 const previewArea = document.querySelector('.scale-anchor');
 
-// --- ระบบ Preview & Scaling ---
-function fitSlide() {
-    if (!previewArea || !wrapper || previewArea.clientWidth === 0) return;
-    const padding = 40; 
-    const scale = Math.min((previewArea.clientWidth - padding) / 1280, (previewArea.clientHeight - padding) / 720, 1);
-    wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
-}
-
-const resizeObserver = new ResizeObserver(() => requestAnimationFrame(fitSlide));
-if(previewArea) resizeObserver.observe(previewArea);
-
+// --- ระบบ Preview ---
 function updatePreview() {
     const slide = slides.find(s => s.id === activeSlideId);
     slide.content = editor.value;
@@ -28,8 +26,9 @@ function updatePreview() {
         <html>
             <head>
                 <script src="https://cdn.tailwindcss.com"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
                 <style>
-                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #000; }
+                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #0f172a; }
                 </style>
             </head>
             <body>${slide.content}</body>
@@ -38,12 +37,11 @@ function updatePreview() {
     previewFrame.srcdoc = doc;
 }
 
-// --- 🏆 ระบบ PDF EXPORT แบบใหม่ (พื้นหลังไม่ขาว) 🏆 ---
+// --- 🏆 ฟังก์ชัน Export PDF (แก้ปัญหาพื้นขาว) 🏆 ---
 document.getElementById('btn-export').onclick = async () => {
     const btn = document.getElementById('btn-export');
     const { jsPDF } = window.jspdf;
 
-    // เปลี่ยน UI ปุ่มระหว่างประมวลผล
     btn.innerText = "...";
     btn.style.opacity = "0.5";
     btn.style.pointerEvents = "none";
@@ -51,43 +49,57 @@ document.getElementById('btn-export').onclick = async () => {
     try {
         const pdf = new jsPDF('l', 'px', [1280, 720]);
         
-        // สร้างพื้นที่ลับสำหรับ Render สไลด์ (Off-screen)
-        const renderContainer = document.createElement('div');
-        renderContainer.style.position = 'fixed';
-        renderContainer.style.top = '-9999px';
-        renderContainer.style.width = '1280px';
-        document.body.appendChild(renderContainer);
+        // 1. สร้าง Iframe ลับเพื่อเรนเดอร์ Tailwind
+        const exportFrame = document.createElement('iframe');
+        exportFrame.style.visibility = 'hidden';
+        exportFrame.style.position = 'fixed';
+        exportFrame.style.width = '1280px';
+        exportFrame.style.height = '720px';
+        document.body.appendChild(exportFrame);
 
         for (let i = 0; i < slides.length; i++) {
             const slide = slides[i];
-            const div = document.createElement('div');
-            div.style.width = '1280px';
-            div.style.height = '720px';
-            div.innerHTML = slide.content;
-            renderContainer.appendChild(div);
+            const frameDoc = exportFrame.contentDocument || exportFrame.contentWindow.document;
 
-            // รอ Tailwind ประมวลผลแป๊บนึง
-            await new Promise(r => setTimeout(r, 200));
+            // 2. เขียน HTML ลงไปใน Iframe เพื่อให้ Tailwind ในนั้นทำงาน
+            frameDoc.open();
+            frameDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+                    <style>
+                        body { margin: 0; padding: 0; background: #0f172a; }
+                    </style>
+                </head>
+                <body>${slide.content}</body>
+                </html>
+            `);
+            frameDoc.close();
 
-            const canvas = await html2canvas(div, {
+            // 3. รอให้ Tailwind และ Fonts โหลดเสร็จ (สำคัญมาก!)
+            await new Promise(r => setTimeout(r, 1200)); 
+
+            // 4. ถ่ายรูปจาก Body ของ Iframe
+            const canvas = await html2canvas(frameDoc.body, {
                 width: 1280,
                 height: 720,
-                scale: 2, // ชัดระดับ 2K
-                useCORS: true
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null // ให้ใช้ตาม CSS ใน Iframe
             });
 
             const imgData = canvas.toDataURL('image/png');
             if (i > 0) pdf.addPage([1280, 720], 'l');
             pdf.addImage(imgData, 'PNG', 0, 0, 1280, 720);
-            
-            renderContainer.removeChild(div);
         }
 
-        pdf.save(`presentation-${Date.now()}.pdf`);
-        document.body.removeChild(renderContainer);
+        pdf.save(`presentation.pdf`);
+        document.body.removeChild(exportFrame);
     } catch (err) {
         console.error(err);
-        alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+        alert("Export failed!");
     } finally {
         btn.innerText = "↓";
         btn.style.opacity = "1";
@@ -95,17 +107,15 @@ document.getElementById('btn-export').onclick = async () => {
     }
 };
 
-// --- ระบบ UI & Tabs ---
+// --- ฟังก์ชันเสริม (Tabs/Add) ---
 document.getElementById('btn-add').onclick = () => {
-    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-800 flex items-center justify-center text-white text-4xl">สไลด์ใหม่</div>` };
+    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-[#0f172a] flex items-center justify-center text-white text-4xl">สไลด์ใหม่</div>` };
     slides.push(newSlide);
     activeSlideId = newSlide.id;
     editor.value = newSlide.content;
     renderTabs();
     updatePreview();
 };
-
-document.getElementById('btn-swap').onclick = () => document.querySelector('.app').classList.toggle('swap');
 
 function renderTabs() {
     const container = document.getElementById('tabs-container');
@@ -124,7 +134,19 @@ function renderTabs() {
     });
 }
 
+// ระบบ Scale
+function fitSlide() {
+    if (!previewArea || !wrapper || previewArea.clientWidth === 0) return;
+    const scale = Math.min((previewArea.clientWidth - 40) / 1280, (previewArea.clientHeight - 40) / 720, 1);
+    wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+const resizeObserver = new ResizeObserver(() => requestAnimationFrame(fitSlide));
+if(previewArea) resizeObserver.observe(previewArea);
 editor.addEventListener('input', updatePreview);
+document.getElementById('btn-swap').onclick = () => { document.querySelector('.app').classList.toggle('swap'); setTimeout(fitSlide, 100); };
+
+// Start
 editor.value = slides[0].content;
 renderTabs();
 updatePreview();
