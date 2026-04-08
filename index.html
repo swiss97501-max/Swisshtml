@@ -7,9 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     
-    <!-- 🆕 เพิ่ม Libraries สำหรับ Export PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- เพิ่ม html2pdf.js สำหรับดาวน์โหลด PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="app">
@@ -17,7 +16,7 @@
             <div class="brand">SLIDE</div>
             <nav>
                 <button id="btn-add" class="btn-icon" title="เพิ่มสไลด์">+</button>
-                <button id="btn-export" class="btn-icon danger" title="Export PDF">↓</button>
+                <button id="btn-export" class="btn-icon danger" title="ดาวน์โหลด PDF">↓</button>
             </nav>
             <div id="tabs-container" class="tabs-vertical"></div>
         </aside>
@@ -36,10 +35,8 @@
             </div>
             <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
         </section>
-        
-        <!-- 🆕 Hidden Container สำหรับ Render สไลด์ทั้งหมดเพื่อ Export -->
-        <div id="pdf-export-container" style="position:fixed; left:-9999px; top:0; width:1280px;"></div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
