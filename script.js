@@ -1,14 +1,6 @@
 let slides = [{ 
     id: Date.now(), 
-    content: `<div class="w-[1280px] h-[720px] flex flex-col justify-center items-center bg-[#0f172a] p-24 text-center relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-2 bg-[#38bdf8]"></div>
-    <div class="absolute inset-0 flex items-center justify-center opacity-5 text-[200px] font-bold text-white">∀ ∃ ∧ ∨</div>
-    <div class="relative z-10 mb-10">
-      <div class="w-24 h-1 bg-[#38bdf8] mx-auto mb-8"></div>
-      <h1 class="text-6xl font-bold text-white leading-tight tracking-tight" style="font-family: 'Playfair Display', serif;">ตรรกศาสตร์ (Logic)</h1>
-    </div>
-    <p class="relative z-10 text-xl text-gray-400 font-light max-w-4xl" style="font-family: 'Sarabun', sans-serif;">การศึกษากฎของการให้เหตุผลอย่างเป็นระบบ<br/>เพื่อแยกแยะ “ความจริง” ออกจาก “ความคลาดเคลื่อน”</p>
-</div>` 
+    content: `` 
 }];
 
 let activeSlideId = slides[0].id;
