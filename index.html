@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slide Engine Pro</title>
+    <title>Slide Engine Pro v3</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     
@@ -23,11 +23,11 @@
 
         <main class="editor-container" id="editor-area">
             <div class="pane-header">HTML / TAILWIND EDITOR</div>
-            <textarea id="html-editor" spellcheck="false"></textarea>
+            <textarea id="html-editor" spellcheck="false" placeholder="เริ่มเขียนสไลด์ด้วย Tailwind CSS..."></textarea>
         </main>
 
         <section class="preview-container" id="preview-area">
-            <div class="pane-header">LIVE PREVIEW</div>
+            <div class="pane-header">LIVE PREVIEW (16:9)</div>
             <div class="scale-anchor">
                 <div id="canvas-wrapper" class="canvas-wrapper">
                     <iframe id="preview-frame"></iframe>
@@ -37,9 +37,9 @@
         </section>
     </div>
 
-    <div id="loading-overlay" style="display: none;">
+    <div id="loading-overlay">
         <div class="loader"></div>
-        <p style="margin-top: 15px; font-weight: bold; color: white;">กำลังสร้างและดาวน์โหลด PDF...<br><span style="font-size: 12px; font-weight: normal; color: #aaa;">(กรุณารอสักครู่ ห้ามปิดหน้าจอ)</span></p>
+        <p>กำลังสร้าง PDF ความละเอียดสูง...<br><span>(กรุณารอสักครู่ ห้ามปิดหน้าต่างนี้)</span></p>
     </div>
 
     <script src="script.js"></script>
