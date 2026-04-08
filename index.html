@@ -3,62 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultimate Slide Engine v2</title>
+    <title>Slide Engine Pro</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
+    </head>
 <body>
-
-    <div class="app-container">
+    <div class="app">
         <aside class="sidebar">
-            <div class="brand">
-                <div class="logo-icon"></div>
-                <span>Engine</span>
-            </div>
-            <div class="nav-links">
-                <button id="btn-add-slide" class="nav-btn primary">
-                    <i>+</i> New Slide
-                </button>
-                <button id="btn-export-pdf" class="nav-btn danger">
-                    <i>↓</i> Export PDF
-                </button>
-            </div>
+            <div class="brand">SLIDE<span>PRO</span></div>
+            <nav>
+                <button id="btn-add" class="btn-icon" title="เพิ่มสไลด์">+</button>
+                <button id="btn-export" class="btn-icon danger" title="Export PDF">↓</button>
+            </nav>
+            <div id="tabs-container" class="tabs-vertical"></div>
         </aside>
 
-        <div class="main-layout">
-            <header class="top-nav">
-                <div class="tabs-scroll" id="tabs-container">
-                    </div>
-            </header>
+        <main class="editor-container">
+            <div class="pane-header">HTML EDITOR</div>
+            <textarea id="html-editor" spellcheck="false" placeholder="เขียนโค้ดที่นี่..."></textarea>
+        </aside>
 
-            <main class="workspace" id="workspace">
-                <section class="pane editor-pane">
-                    <div class="pane-label">EDITOR</div>
-                    <textarea id="html-editor" spellcheck="false" placeholder="Start coding your slide..."></textarea>
-                </section>
-
-                <section class="pane preview-pane" id="preview-pane">
-                    <div class="pane-label">PREVIEW</div>
-                    <div class="iframe-wrapper" id="iframe-wrapper">
-                        <iframe id="preview-frame"></iframe>
-                    </div>
-                </section>
-            </main>
-        </div>
+        <section class="preview-container" id="preview-area">
+            <div class="pane-header">PREVIEW (16:9)</div>
+            <div id="canvas-wrapper" class="canvas-wrapper">
+                <iframe id="preview-frame"></iframe>
+            </div>
+            <button id="btn-swap" class="mobile-only-btn">Swap Editor/Preview</button>
+        </section>
     </div>
-
-    <div id="export-container" class="hidden-export">
-        <iframe id="export-frame"></iframe>
-    </div>
-
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-        <p>Generating PDF...</p>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
