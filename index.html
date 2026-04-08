@@ -6,6 +6,10 @@
     <title>Slide Engine - Ultimate Fix</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- 🆕 เพิ่ม Libraries สำหรับ Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="app">
@@ -32,6 +36,9 @@
             </div>
             <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
         </section>
+        
+        <!-- 🆕 Hidden Container สำหรับ Render สไลด์ทั้งหมดเพื่อ Export -->
+        <div id="pdf-export-container" style="position:fixed; left:-9999px; top:0; width:1280px;"></div>
     </div>
     <script src="script.js"></script>
 </body>
