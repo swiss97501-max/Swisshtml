@@ -1,4 +1,7 @@
-let slides = [{ id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-900 flex items-center justify-center text-white text-5xl">เริ่มเขียนสไลด์แรก</div>` }];
+let slides = [{ id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-900 flex flex-col items-center justify-center text-white">
+    <h1 class="text-6xl font-bold mb-4">Slide Engine</h1>
+    <p class="text-xl text-slate-400">Export PDF แบบพื้นหลังไม่ขาว</p>
+</div>` }];
 let activeSlideId = slides[0].id;
 
 const editor = document.getElementById('html-editor');
@@ -6,47 +9,27 @@ const previewFrame = document.getElementById('preview-frame');
 const wrapper = document.getElementById('canvas-wrapper');
 const previewArea = document.querySelector('.scale-anchor');
 
-// 🏆 1. PREVIEW FIX: คำนวณ Scale แบบ Absolute
+// --- ระบบ Preview & Scaling ---
 function fitSlide() {
-    if (!previewArea || !wrapper) return;
-    
-    // หากพื้นที่แสดงผลโดนซ่อนอยู่ (เช่น บนมือถือตอนสลับจอ) ให้ข้ามไปก่อน
-    if (previewArea.clientWidth === 0) return;
-
-    // เผื่อระยะขอบซ้ายขวา 40px
+    if (!previewArea || !wrapper || previewArea.clientWidth === 0) return;
     const padding = 40; 
-    const availableWidth = previewArea.clientWidth - padding;
-    const availableHeight = previewArea.clientHeight - padding;
-    
-    const scaleX = availableWidth / 1280;
-    const scaleY = availableHeight / 720;
-    
-    // บังคับ Scale ไม่ให้เกิน 1
-    let scale = Math.min(scaleX, scaleY, 1);
-    
-    // ใช้ translate(-50%, -50%) ร่วมกับ scale เพื่อให้สไลด์อยู่ตรงกลางเป๊ะๆ และไม่ล้นขอบ
+    const scale = Math.min((previewArea.clientWidth - padding) / 1280, (previewArea.clientHeight - padding) / 720, 1);
     wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
 
-// 🏆 ใช้ ResizeObserver เพื่อจับตาดูการเปลี่ยนขนาดจอแบบ Real-time แม่นยำกว่า window.resize
-const resizeObserver = new ResizeObserver(() => {
-    requestAnimationFrame(fitSlide);
-});
+const resizeObserver = new ResizeObserver(() => requestAnimationFrame(fitSlide));
 if(previewArea) resizeObserver.observe(previewArea);
 
 function updatePreview() {
     const slide = slides.find(s => s.id === activeSlideId);
     slide.content = editor.value;
-
     const doc = `
         <!DOCTYPE html>
         <html>
             <head>
-                <meta charset="UTF-8">
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
-                    /* ล้างค่าเริ่มต้น ป้องกัน Scrollbar โผล่ใน iframe */
-                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: white; }
+                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #000; }
                 </style>
             </head>
             <body>${slide.content}</body>
@@ -55,57 +38,66 @@ function updatePreview() {
     previewFrame.srcdoc = doc;
 }
 
-// 🏆 2. PDF EXPORT FIX: บังคับการพิมพ์สี และรอ Tailwind 🏆
-document.getElementById('btn-export').onclick = () => {
-    // แจ้งเตือนผู้ใช้ (สำคัญมาก)
-    alert("⚠️ สำคัญมาก!\nในหน้าต่าง Print ที่กำลังจะแสดงขึ้นมา โปรดตรวจสอบว่าได้ติ๊กเลือก 'Background graphics' (กราฟิกพื้นหลัง) แล้ว มิฉะนั้นสีและพื้นหลังจะหายไป");
+// --- 🏆 ระบบ PDF EXPORT แบบใหม่ (พื้นหลังไม่ขาว) 🏆 ---
+document.getElementById('btn-export').onclick = async () => {
+    const btn = document.getElementById('btn-export');
+    const { jsPDF } = window.jspdf;
 
-    const printWin = window.open('', '_blank');
-    let html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-                @media print {
-                    /* ตั้งขนาดหน้ากระดาษให้เป็นสัดส่วน 16:9 พอดี */
-                    @page { size: 1280px 720px; margin: 0; }
-                    
-                    /* บังคับให้ Browser พิมพ์สีพื้นหลังออกมา (แก้ปัญหาหน้าขาว) */
-                    html, body { 
-                        margin: 0; 
-                        -webkit-print-color-adjust: exact !important; 
-                        print-color-adjust: exact !important; 
-                    }
-                    
-                    .slide { 
-                        width: 1280px; 
-                        height: 720px; 
-                        page-break-after: always; 
-                        position: relative; 
-                        overflow: hidden; 
-                    }
-                }
-            </style>
-        </head>
-        <body>
-    `;
-    
-    slides.forEach(s => { html += `<div class="slide">${s.content}</div>`; });
-    html += `</body></html>`;
-    
-    printWin.document.write(html);
-    printWin.document.close();
-    
-    // ต้องรอให้ Tailwind โหลดและประมวลผล CSS ให้เสร็จ (ให้เวลา 1.5 วินาที)
-    setTimeout(() => {
-        printWin.print();
-    }, 1500);
+    // เปลี่ยน UI ปุ่มระหว่างประมวลผล
+    btn.innerText = "...";
+    btn.style.opacity = "0.5";
+    btn.style.pointerEvents = "none";
+
+    try {
+        const pdf = new jsPDF('l', 'px', [1280, 720]);
+        
+        // สร้างพื้นที่ลับสำหรับ Render สไลด์ (Off-screen)
+        const renderContainer = document.createElement('div');
+        renderContainer.style.position = 'fixed';
+        renderContainer.style.top = '-9999px';
+        renderContainer.style.width = '1280px';
+        document.body.appendChild(renderContainer);
+
+        for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i];
+            const div = document.createElement('div');
+            div.style.width = '1280px';
+            div.style.height = '720px';
+            div.innerHTML = slide.content;
+            renderContainer.appendChild(div);
+
+            // รอ Tailwind ประมวลผลแป๊บนึง
+            await new Promise(r => setTimeout(r, 200));
+
+            const canvas = await html2canvas(div, {
+                width: 1280,
+                height: 720,
+                scale: 2, // ชัดระดับ 2K
+                useCORS: true
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            if (i > 0) pdf.addPage([1280, 720], 'l');
+            pdf.addImage(imgData, 'PNG', 0, 0, 1280, 720);
+            
+            renderContainer.removeChild(div);
+        }
+
+        pdf.save(`presentation-${Date.now()}.pdf`);
+        document.body.removeChild(renderContainer);
+    } catch (err) {
+        console.error(err);
+        alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+    } finally {
+        btn.innerText = "↓";
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+    }
 };
 
-// --- การควบคุมระบบ UI ---
+// --- ระบบ UI & Tabs ---
 document.getElementById('btn-add').onclick = () => {
-    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-100"></div>` };
+    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-slate-800 flex items-center justify-center text-white text-4xl">สไลด์ใหม่</div>` };
     slides.push(newSlide);
     activeSlideId = newSlide.id;
     editor.value = newSlide.content;
@@ -113,10 +105,7 @@ document.getElementById('btn-add').onclick = () => {
     updatePreview();
 };
 
-document.getElementById('btn-swap').onclick = () => {
-    document.querySelector('.app').classList.toggle('swap');
-    // ให้เวลา CSS ทำงานนิดนึง แล้ว ResizeObserver จะจับได้เองว่าต้องคำนวณสเกลใหม่
-};
+document.getElementById('btn-swap').onclick = () => document.querySelector('.app').classList.toggle('swap');
 
 function renderTabs() {
     const container = document.getElementById('tabs-container');
@@ -136,10 +125,7 @@ function renderTabs() {
 }
 
 editor.addEventListener('input', updatePreview);
-
-// เริ่มต้นการทำงาน
 editor.value = slides[0].content;
 renderTabs();
 updatePreview();
-// คำนวณขนาดครั้งแรก
 setTimeout(fitSlide, 100);
