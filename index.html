@@ -1,13 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slide Engine - PDF Download</title>
+    <title>Slide Engine - Ultimate Fix</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <!-- html2pdf.js สำหรับสร้าง PDF โดยตรง -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
     <div class="app">
@@ -15,26 +14,27 @@
             <div class="brand">SLIDE</div>
             <nav>
                 <button id="btn-add" class="btn-icon" title="เพิ่มสไลด์">+</button>
-                <button id="btn-export" class="btn-icon danger" title="ดาวน์โหลด PDF">↓</button>
+                <button id="btn-export" class="btn-icon danger" title="Export PDF">↓</button>
             </nav>
             <div id="tabs-container" class="tabs-vertical"></div>
         </aside>
 
-        <main class="editor-container" id="editor-area">
-            <div class="pane-header">HTML / TAILWIND EDITOR</div>
-            <textarea id="html-editor" spellcheck="false"></textarea>
-        </main>
+    <main class="editor-container" id="editor-area">
+        <div class="pane-header">HTML / TAILWIND EDITOR</div>
+        <textarea id="html-editor" spellcheck="false"></textarea>
+    </main>
 
-        <section class="preview-container" id="preview-area">
-            <div class="pane-header">LIVE PREVIEW</div>
-            <div class="scale-anchor">
-                <div id="canvas-wrapper" class="canvas-wrapper">
-                    <iframe id="preview-frame"></iframe>
-                </div>
+    <section class="preview-container" id="preview-area">
+        <div class="pane-header">LIVE PREVIEW</div>
+        <div class="scale-anchor">
+            <div id="canvas-wrapper" class="canvas-wrapper">
+                <iframe id="preview-frame"></iframe>
             </div>
-            <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
-        </section>
-    </div>
-    <script src="script.js"></script>
+        </div>
+        <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
+    </section>
+</div>
+<script src="script.js"></script>
+
 </body>
 </html>
