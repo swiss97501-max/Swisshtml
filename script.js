@@ -1,18 +1,22 @@
 /**
- * Ultimate Slide Engine Logic
- * Optimized for Desktop, iPad, and Mobile
+ * Ultimate Slide Engine v2 Logic
  */
 
-let slides = [{ id: Date.now(), content: `` }];
+let slides = [{
+    id: Date.now(),
+    content: `` // เริ่มแบบว่างๆ เปล่าๆ
+}];
+
 let activeSlideId = slides[0].id;
 
+// Elements
 const editor = document.getElementById('html-editor');
 const previewFrame = document.getElementById('preview-frame');
 const wrapper = document.getElementById('iframe-wrapper');
 const previewPane = document.getElementById('preview-pane');
 const tabsContainer = document.getElementById('tabs-container');
 
-// --- Core Function: Update Live Preview ---
+// --- Core Function: Smart Preview with Auto-Scaling ---
 function updatePreview() {
     const activeSlide = slides.find(s => s.id === activeSlideId);
     activeSlide.content = editor.value;
@@ -22,36 +26,35 @@ function updatePreview() {
         <html>
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=1280">
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
-                    body { margin: 0; padding: 0; overflow: hidden; background: white; width: 1280px; height: 720px; font-family: sans-serif; }
+                    body { margin: 0; padding: 0; overflow: hidden; background: white; width: 1280px; height: 720px; }
                 </style>
             </head>
             <body>${activeSlide.content}</body>
         </html>
     `;
     previewFrame.srcdoc = fullDoc;
-    // Debounce scaling slightly to ensure iframe is ready
+    // Debounce scaling just a bit for stability
     requestAnimationFrame(fitSlide);
 }
 
-// --- Core Function: Smart Responsive Scaling ---
+// 🏆 The Fix for Preview 🏆
 function fitSlide() {
     if (!previewPane || !wrapper) return;
 
-    const padding = window.innerWidth < 768 ? 20 : 60;
-    const availableWidth = previewPane.clientWidth - padding;
-    const availableHeight = previewPane.clientHeight - padding;
+    // Get the actual available space in the pane
+    const availableWidth = previewPane.clientWidth - 40; // 40px padding
+    const availableHeight = previewPane.clientHeight - 40;
     
-    // Base Resolution: 1280x720 (16:9)
+    // Base resolution is 1280x720 (16:9)
     const scale = Math.min(availableWidth / 1280, availableHeight / 720);
-    const finalScale = scale > 1 ? 1 : scale;
+    const finalScale = scale > 1 ? 1 : scale; // Don't upscale
     
     wrapper.style.transform = `scale(${finalScale})`;
 }
 
-// --- UI: Tabs Management ---
+// --- Tabs Management ---
 function renderTabs() {
     tabsContainer.innerHTML = '';
     slides.forEach((s, i) => {
@@ -68,80 +71,59 @@ function renderTabs() {
     });
 }
 
-// --- Actions ---
+// --- UI Listeners ---
 document.getElementById('btn-add-slide').onclick = () => {
-    const newSlide = { id: Date.now(), content: `` };
-    slides.push(newSlide);
-    activeSlideId = newSlide.id;
+    slides.push({ id: Date.now(), content: `` });
+    activeSlideId = slides[slides.length-1].id;
     editor.value = ``;
     renderTabs();
     updatePreview();
 };
 
-document.getElementById('btn-toggle-view').onclick = () => {
-    const workspace = document.getElementById('workspace');
-    workspace.classList.toggle('view-preview');
-    workspace.classList.toggle('view-editor');
-    setTimeout(fitSlide, 100);
-};
-
 window.addEventListener('resize', fitSlide);
-editor.addEventListener('input', () => {
-    // ใช้ requestIdleCallback หรือ setTimeout เพื่อลดภาระเครื่อง
-    updatePreview();
-});
+editor.oninput = updatePreview;
 
-// --- PDF Export (Optimized) ---
-document.getElementById('btn-export-pdf').onclick = async () => {
-    const overlay = document.getElementById('loading-overlay');
-    overlay.classList.remove('hidden');
+// --- 🏆 The Master Fix for Export 🏆 ---
+// ใช้ window.print() และ Print CSS แทน html2canvas เพื่อความแม่นยำ 100%
+document.getElementById('btn-export-pdf').onclick = () => {
+    const printWindow = window.open('', '_blank');
     
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('l', 'px', [1280, 720]);
-    const exportFrame = document.getElementById('export-frame');
+    let htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Export PDF</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+                @media print {
+                    @page { size: 1280px 720px; margin: 0; }
+                    body { margin: 0; }
+                    .page-break { page-break-after: always; display: block; height: 0; overflow: hidden; }
+                    .slide-page { width: 1280px; height: 720px; position: relative; overflow: hidden; -webkit-print-color-adjust: exact !important; }
+                }
+            </style>
+        </head>
+        <body>
+    `;
 
-    try {
-        for (let i = 0; i < slides.length; i++) {
-            const slide = slides[i];
-            exportFrame.srcdoc = `
-                <html>
-                    <head>
-                        <script src="https://cdn.tailwindcss.com"></script>
-                        <style>body { margin:0; padding:0; width:1280px; height:720px; overflow:hidden; }</style>
-                    </head>
-                    <body>${slide.content}</body>
-                </html>
-            `;
-            
-            await new Promise(r => setTimeout(r, 1200)); // ให้เวลา Tailwind render
+    slides.forEach(slide => {
+        htmlContent += `<div class="slide-page">${slide.content}</div>`;
+        htmlContent += `<div class="page-break"></div>`;
+    });
 
-            const canvas = await html2canvas(exportFrame.contentDocument.body, {
-                width: 1280, height: 720, scale: 1.5, // เพิ่มคุณภาพภาพใน PDF
-                useCORS: true,
-                logging: false
-            });
-            
-            if (i > 0) pdf.addPage();
-            pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 1280, 720);
-        }
-        pdf.save(`presentation_${Date.now()}.pdf`);
-    } catch (e) {
-        console.error(e);
-        alert("Export failed. Check console.");
-    } finally {
-        overlay.classList.add('hidden');
-    }
+    htmlContent += `</body></html>`;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+
+    // รอสักครู่ให้ Tailwind Render แล้วค่อยเรียก Print Dialog
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 1500);
 };
 
 // --- Initialization ---
-function init() {
-    editor.value = slides[0].content;
-    // เริ่มต้นที่หน้า Editor สำหรับ Mobile
-    if (window.innerWidth <= 1024) {
-        document.getElementById('workspace').classList.add('view-editor');
-    }
-    renderTabs();
-    updatePreview();
-}
-
-init();
+editor.value = slides[0].content;
+renderTabs();
+updatePreview();
