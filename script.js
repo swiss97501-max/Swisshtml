@@ -1,6 +1,35 @@
 let slides = [{ 
     id: Date.now(), 
-    content: `` 
+    content: `
+<div class="p-16 text-white font-['Sarabun'] h-full flex flex-col justify-start">
+    <div class="flex items-start mb-6">
+        <span class="text-orange-500 mr-2">▶</span>
+        <p class="text-2xl font-bold text-yellow-400">
+            กับดัก (Trap): <span class="text-white">ให้สูตรเป็นสารประกอบไอออนิก</span>
+        </p>
+    </div>
+    <p class="text-2xl ml-10 mb-12">
+        แต่ถามจำนวน <span class="text-3xl font-bold text-yellow-400">\\( Cr_2O_7^{2-} \\)</span>
+    </p>
+
+    <div class="flex items-start mb-6">
+        <span class="text-orange-500 mr-2">▶</span>
+        <p class="text-2xl font-bold text-yellow-400">
+            โครงสร้าง: <span class="text-white">1 โมเลกุล \\( K_2Cr_2O_7 \\)</span>
+        </p>
+    </div>
+    <p class="text-2xl ml-10">
+        มี <span class="font-bold text-yellow-400">\\( K^+ \\)</span> 2 โมเลกุล และ 
+        <span class="text-yellow-400 font-bold underline">\\( Cr_2O_7^{2-} \\) เพียง 1 โมเลกุล</span>
+    </p>
+
+    <div class="mt-auto bg-gray-800/50 p-6 rounded-xl border-l-4 border-orange-500">
+        <p class="text-xl">
+            ⚠️ <span class="text-yellow-400 font-bold">ไม่มีการแยก!</span> ไอออน 
+            <span class="font-bold">\\( Cr_2O_7^{2-} \\)</span> อยู่เป็นหน่วยเดียว
+        </p>
+    </div>
+</div>` 
 }];
 
 let activeSlideId = slides[0].id;
@@ -9,7 +38,6 @@ const previewFrame = document.getElementById('preview-frame');
 const wrapper = document.getElementById('canvas-wrapper');
 const previewArea = document.querySelector('.scale-anchor');
 
-// --- ระบบ Preview ---
 function updatePreview() {
     const slide = slides.find(s => s.id === activeSlideId);
     slide.content = editor.value;
@@ -18,9 +46,10 @@ function updatePreview() {
         <html>
             <head>
                 <script src="https://cdn.tailwindcss.com"></script>
-                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+                <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
                 <style>
-                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #0f172a; }
+                    html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #0f172a; font-family: 'Sarabun', sans-serif; }
                 </style>
             </head>
             <body>${slide.content}</body>
@@ -29,7 +58,6 @@ function updatePreview() {
     previewFrame.srcdoc = doc;
 }
 
-// --- 🏆 ฟังก์ชัน Export PDF (แก้ปัญหาพื้นขาว) 🏆 ---
 document.getElementById('btn-export').onclick = async () => {
     const btn = document.getElementById('btn-export');
     const { jsPDF } = window.jspdf;
@@ -40,8 +68,6 @@ document.getElementById('btn-export').onclick = async () => {
 
     try {
         const pdf = new jsPDF('l', 'px', [1280, 720]);
-        
-        // 1. สร้าง Iframe ลับเพื่อเรนเดอร์ Tailwind
         const exportFrame = document.createElement('iframe');
         exportFrame.style.visibility = 'hidden';
         exportFrame.style.position = 'fixed';
@@ -53,16 +79,16 @@ document.getElementById('btn-export').onclick = async () => {
             const slide = slides[i];
             const frameDoc = exportFrame.contentDocument || exportFrame.contentWindow.document;
 
-            // 2. เขียน HTML ลงไปใน Iframe เพื่อให้ Tailwind ในนั้นทำงาน
             frameDoc.open();
             frameDoc.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <script src="https://cdn.tailwindcss.com"></script>
-                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+                    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
                     <style>
-                        body { margin: 0; padding: 0; background: #0f172a; }
+                        body { margin: 0; padding: 0; background: #0f172a; font-family: 'Sarabun', sans-serif; width: 1280px; height: 720px; }
                     </style>
                 </head>
                 <body>${slide.content}</body>
@@ -70,16 +96,17 @@ document.getElementById('btn-export').onclick = async () => {
             `);
             frameDoc.close();
 
-            // 3. รอให้ Tailwind และ Fonts โหลดเสร็จ (สำคัญมาก!)
-            await new Promise(r => setTimeout(r, 1200)); 
+            // รอการโหลดที่จำเป็น
+            await exportFrame.contentWindow.document.fonts.ready;
+            if (exportFrame.contentWindow.MathJax) {
+                await exportFrame.contentWindow.MathJax.typesetPromise();
+            }
+            await new Promise(r => setTimeout(r, 1000)); 
 
-            // 4. ถ่ายรูปจาก Body ของ Iframe
             const canvas = await html2canvas(frameDoc.body, {
-                width: 1280,
-                height: 720,
-                scale: 2,
-                useCORS: true,
-                backgroundColor: null // ให้ใช้ตาม CSS ใน Iframe
+                width: 1280, height: 720, scale: 2,
+                useCORS: true, backgroundColor: '#0f172a',
+                letterRendering: true
             });
 
             const imgData = canvas.toDataURL('image/png');
@@ -93,15 +120,13 @@ document.getElementById('btn-export').onclick = async () => {
         console.error(err);
         alert("Export failed!");
     } finally {
-        btn.innerText = "↓";
-        btn.style.opacity = "1";
-        btn.style.pointerEvents = "auto";
+        btn.innerText = "↓"; btn.style.opacity = "1"; btn.style.pointerEvents = "auto";
     }
 };
 
-// --- ฟังก์ชันเสริม (Tabs/Add) ---
+// --- ฟังก์ชันเสริมคงเดิม ---
 document.getElementById('btn-add').onclick = () => {
-    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-[#0f172a] flex items-center justify-center text-white text-4xl">สไลด์ใหม่</div>` };
+    const newSlide = { id: Date.now(), content: `<div class="w-[1280px] h-[720px] bg-[#0f172a] flex items-center justify-center text-white text-4xl font-['Sarabun']">สไลด์ใหม่</div>` };
     slides.push(newSlide);
     activeSlideId = newSlide.id;
     editor.value = newSlide.content;
@@ -126,7 +151,6 @@ function renderTabs() {
     });
 }
 
-// ระบบ Scale
 function fitSlide() {
     if (!previewArea || !wrapper || previewArea.clientWidth === 0) return;
     const scale = Math.min((previewArea.clientWidth - 40) / 1280, (previewArea.clientHeight - 40) / 720, 1);
