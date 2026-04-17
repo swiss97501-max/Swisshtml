@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Slide Engine - Ultimate Export</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600&family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div class="app">
@@ -23,20 +22,22 @@
         </aside>
 
         <main class="editor-container">
-            <div class="pane-header">HTML / TAILWIND EDITOR (ใช้ \(สูตร\) สำหรับเคมี)</div>
-            <textarea id="html-editor" spellcheck="false"></textarea>
+            <div class="pane-header">HTML / TAILWIND EDITOR</div>
+            <textarea id="html-editor" spellcheck="false" placeholder="พิมพ์ HTML/Tailwind ที่นี่..."></textarea>
         </main>
 
         <section class="preview-container" id="preview-area">
             <div class="pane-header">LIVE PREVIEW</div>
             <div class="scale-anchor">
                 <div id="canvas-wrapper" class="canvas-wrapper">
-                    <iframe id="preview-frame"></iframe>
+                    <iframe id="preview-frame" sandbox="allow-same-origin allow-scripts"></iframe>
                 </div>
             </div>
             <button id="btn-swap" class="mobile-only-btn">สลับหน้าจอ (Swap)</button>
         </section>
     </div>
+    <!-- Hidden container for export -->
+    <div id="export-container" style="position:fixed;left:-9999px;top:-9999px;width:1280px;height:720px;"></div>
     <script src="script.js"></script>
 </body>
 </html>
