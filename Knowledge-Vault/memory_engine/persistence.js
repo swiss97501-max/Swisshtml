@@ -1,31 +1,14 @@
+import { createLevel } from './levelAdapter.js';
 import { v4 as uuidv4 } from 'uuid';
 
 let db = null;
 
 export async function init(dbPath = './data/kv') {
   if (db) return db;
-  // dynamic import to support different 'level' package shapes (CJS/ESM)
-  let LevelClass = null;
   try {
-    const mod = await import('level');
-    LevelClass = mod.Level || mod.default || mod;
-  } catch (err) {
-    // fallback: try require via createRequire (for some environments)
-    try {
-      // eslint-disable-next-line node/no-extraneous-require
-      const req = await import('module');
-      const createRequire = req.createRequire(import.meta.url);
-      const modc = createRequire('level');
-      LevelClass = modc.Level || modc.default || modc;
-    } catch (e) {
-      throw new Error('Failed to load level package: ' + (e && e.message));
-    }
-  }
-
-  try {
-    db = new LevelClass(dbPath, { valueEncoding: 'json' });
+    db = await createLevel(dbPath, { valueEncoding: 'json' });
   } catch (e) {
-    throw new Error('Failed to initialize LevelDB: ' + (e && e.message));
+    throw new Error('Failed to initialize LevelDB via adapter: ' + (e && e.message));
   }
   return db;
 }
@@ -38,10 +21,8 @@ export async function putFragment(fragment) {
   ensureDB();
   if (!fragment || !fragment.id) throw new Error('fragment.id required');
   const key = `fragment:${fragment.id}`;
-  // idempotent write: check existing
   try {
     const existing = await db.get(key);
-    // merge metadata: do not overwrite text, append canonicalId if present
     const merged = { ...existing, ...fragment };
     await db.put(key, merged);
     return merged;
@@ -70,7 +51,6 @@ export async function putCanonical(canonical) {
   const key = `canonical:${canonical.id}`;
   try {
     const existing = await db.get(key);
-    // append-only semantics: do not replace 'views' or 'created_at' if present
     const merged = { ...existing, ...canonical };
     await db.put(key, merged);
     return merged;
@@ -114,7 +94,6 @@ export async function getMergeLog() {
         .on('error', (err) => reject(err))
         .on('end', () => resolve(res));
     } else if (stream && typeof stream.next === 'function') {
-      // fallback iterator
       (async () => {
         try {
           let item = await stream.next();
