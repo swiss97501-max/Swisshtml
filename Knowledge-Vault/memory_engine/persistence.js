@@ -1,11 +1,19 @@
-import level from 'level';
+import { Level } from 'level';
 import { v4 as uuidv4 } from 'uuid';
 
 let db = null;
 
 export async function init(dbPath = './data/kv') {
   if (db) return db;
-  db = level(dbPath, { valueEncoding: 'json' });
+  // ensure directory exists
+  try {
+    db = new Level(dbPath, { valueEncoding: 'json' });
+  } catch (e) {
+    // fallback for older 'level' exports
+    // eslint-disable-next-line no-undef
+    const level = (await import('level')).default || (await import('level'));
+    db = level(dbPath, { valueEncoding: 'json' });
+  }
   return db;
 }
 
@@ -25,7 +33,7 @@ export async function putFragment(fragment) {
     await db.put(key, merged);
     return merged;
   } catch (err) {
-    if (err.type === 'NotFoundError') {
+    if (err && (err.notFound || err.name === 'NotFoundError' || err.type === 'NotFoundError')) {
       await db.put(key, fragment);
       return fragment;
     }
@@ -38,7 +46,7 @@ export async function getFragment(id) {
   try {
     return await db.get(`fragment:${id}`);
   } catch (err) {
-    if (err.type === 'NotFoundError') return null;
+    if (err && (err.notFound || err.name === 'NotFoundError' || err.type === 'NotFoundError')) return null;
     throw err;
   }
 }
@@ -54,7 +62,7 @@ export async function putCanonical(canonical) {
     await db.put(key, merged);
     return merged;
   } catch (err) {
-    if (err.type === 'NotFoundError') {
+    if (err && (err.notFound || err.name === 'NotFoundError' || err.type === 'NotFoundError')) {
       await db.put(key, canonical);
       return canonical;
     }
@@ -67,7 +75,7 @@ export async function getCanonical(id) {
   try {
     return await db.get(`canonical:${id}`);
   } catch (err) {
-    if (err.type === 'NotFoundError') return null;
+    if (err && (err.notFound || err.name === 'NotFoundError' || err.type === 'NotFoundError')) return null;
     throw err;
   }
 }
@@ -86,13 +94,27 @@ export async function getMergeLog() {
   ensureDB();
   return new Promise((resolve, reject) => {
     const res = [];
-    db.createReadStream({
-      gte: 'merge:',
-      lte: 'merge:~'
-    })
-      .on('data', ({ key, value }) => res.push({ key, value }))
-      .on('error', (err) => reject(err))
-      .on('end', () => resolve(res));
+    const stream = db.createReadStream ? db.createReadStream({ gte: 'merge:', lte: 'merge:~' }) : db.iterator({ gte: 'merge:', lte: 'merge:~' });
+    if (stream && stream.on) {
+      stream
+        .on('data', ({ key, value }) => res.push({ key, value }))
+        .on('error', (err) => reject(err))
+        .on('end', () => resolve(res));
+    } else if (stream && typeof stream.next === 'function') {
+      // fallback iterator
+      (async () => {
+        try {
+          let item;
+          while ((item = await stream.next())) {
+            const [key, value] = item;
+            res.push({ key, value });
+          }
+          resolve(res);
+        } catch (e) { reject(e); }
+      })();
+    } else {
+      resolve(res);
+    }
   });
 }
 
@@ -100,17 +122,39 @@ export async function exportAll() {
   ensureDB();
   const out = { fragments: {}, canonicals: {}, mergeLog: [] };
   return new Promise((resolve, reject) => {
-    db.createReadStream()
-      .on('data', ({ key, value }) => {
-        if (key.startsWith('fragment:')) {
-          out.fragments[key.slice(9)] = value;
-        } else if (key.startsWith('canonical:')) {
-          out.canonicals[key.slice(10)] = value;
-        } else if (key.startsWith('merge:')) {
-          out.mergeLog.push({ key, value });
-        }
-      })
-      .on('error', (err) => reject(err))
-      .on('end', () => resolve(out));
+    const stream = db.createReadStream ? db.createReadStream() : db.iterator();
+    if (stream && stream.on) {
+      stream
+        .on('data', ({ key, value }) => {
+          if (key.startsWith('fragment:')) {
+            out.fragments[key.slice(9)] = value;
+          } else if (key.startsWith('canonical:')) {
+            out.canonicals[key.slice(10)] = value;
+          } else if (key.startsWith('merge:')) {
+            out.mergeLog.push({ key, value });
+          }
+        })
+        .on('error', (err) => reject(err))
+        .on('end', () => resolve(out));
+    } else if (stream && typeof stream.next === 'function') {
+      (async () => {
+        try {
+          let item;
+          while ((item = await stream.next())) {
+            const [key, value] = item;
+            if (key.startsWith('fragment:')) {
+              out.fragments[key.slice(9)] = value;
+            } else if (key.startsWith('canonical:')) {
+              out.canonicals[key.slice(10)] = value;
+            } else if (key.startsWith('merge:')) {
+              out.mergeLog.push({ key, value });
+            }
+          }
+          resolve(out);
+        } catch (e) { reject(e); }
+      })();
+    } else {
+      resolve(out);
+    }
   });
 }
