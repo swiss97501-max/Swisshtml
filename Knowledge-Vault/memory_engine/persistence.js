@@ -1,18 +1,31 @@
-import { Level } from 'level';
 import { v4 as uuidv4 } from 'uuid';
 
 let db = null;
 
 export async function init(dbPath = './data/kv') {
   if (db) return db;
-  // ensure directory exists
+  // dynamic import to support different 'level' package shapes (CJS/ESM)
+  let LevelClass = null;
   try {
-    db = new Level(dbPath, { valueEncoding: 'json' });
+    const mod = await import('level');
+    LevelClass = mod.Level || mod.default || mod;
+  } catch (err) {
+    // fallback: try require via createRequire (for some environments)
+    try {
+      // eslint-disable-next-line node/no-extraneous-require
+      const req = await import('module');
+      const createRequire = req.createRequire(import.meta.url);
+      const modc = createRequire('level');
+      LevelClass = modc.Level || modc.default || modc;
+    } catch (e) {
+      throw new Error('Failed to load level package: ' + (e && e.message));
+    }
+  }
+
+  try {
+    db = new LevelClass(dbPath, { valueEncoding: 'json' });
   } catch (e) {
-    // fallback for older 'level' exports
-    // eslint-disable-next-line no-undef
-    const level = (await import('level')).default || (await import('level'));
-    db = level(dbPath, { valueEncoding: 'json' });
+    throw new Error('Failed to initialize LevelDB: ' + (e && e.message));
   }
   return db;
 }
@@ -94,7 +107,7 @@ export async function getMergeLog() {
   ensureDB();
   return new Promise((resolve, reject) => {
     const res = [];
-    const stream = db.createReadStream ? db.createReadStream({ gte: 'merge:', lte: 'merge:~' }) : db.iterator({ gte: 'merge:', lte: 'merge:~' });
+    const stream = db.createReadStream ? db.createReadStream({ gte: 'merge:', lte: 'merge:~' }) : (db.iterator ? db.iterator({ gt: 'merge:' }) : null);
     if (stream && stream.on) {
       stream
         .on('data', ({ key, value }) => res.push({ key, value }))
@@ -104,10 +117,11 @@ export async function getMergeLog() {
       // fallback iterator
       (async () => {
         try {
-          let item;
-          while ((item = await stream.next())) {
+          let item = await stream.next();
+          while (item && item.length) {
             const [key, value] = item;
             res.push({ key, value });
+            item = await stream.next();
           }
           resolve(res);
         } catch (e) { reject(e); }
@@ -122,7 +136,7 @@ export async function exportAll() {
   ensureDB();
   const out = { fragments: {}, canonicals: {}, mergeLog: [] };
   return new Promise((resolve, reject) => {
-    const stream = db.createReadStream ? db.createReadStream() : db.iterator();
+    const stream = db.createReadStream ? db.createReadStream() : (db.iterator ? db.iterator() : null);
     if (stream && stream.on) {
       stream
         .on('data', ({ key, value }) => {
@@ -139,8 +153,8 @@ export async function exportAll() {
     } else if (stream && typeof stream.next === 'function') {
       (async () => {
         try {
-          let item;
-          while ((item = await stream.next())) {
+          let item = await stream.next();
+          while (item && item.length) {
             const [key, value] = item;
             if (key.startsWith('fragment:')) {
               out.fragments[key.slice(9)] = value;
@@ -149,6 +163,7 @@ export async function exportAll() {
             } else if (key.startsWith('merge:')) {
               out.mergeLog.push({ key, value });
             }
+            item = await stream.next();
           }
           resolve(out);
         } catch (e) { reject(e); }
